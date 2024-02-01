@@ -1,5 +1,5 @@
 use crate::blueprints::package::*;
-use crate::errors::{ApplicationError, RuntimeError};
+use crate::errors::{ApplicationError, RuntimeError, SystemUpstreamError, VmError};
 use crate::kernel::kernel_api::{KernelInternalApi, KernelNodeApi, KernelSubstateApi};
 use crate::system::system_callback::{SystemConfig, SystemLockData};
 use crate::system::system_callback_api::SystemCallbackObject;
@@ -10,8 +10,10 @@ use crate::vm::wasm::{ScryptoV1WasmValidator, WasmEngine};
 use crate::vm::{NativeVm, NativeVmExtension, ScryptoVm};
 use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::ClientApi;
+use radix_runtime_fuzzer::RadixRuntimeFuzzer;
 
-use super::wasm::SCRYPTO_V1_LATEST_MINOR_VERSION;
+use super::wasm::{WasmRuntime, WasmRuntimeError, SCRYPTO_V1_LATEST_MINOR_VERSION};
+use super::wasm_runtime::ScryptoRuntime;
 
 pub const BOOT_LOADER_VM_SUBSTATE_FIELD_KEY: FieldKey = 2u8;
 
@@ -169,50 +171,86 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                 output
             }
             VmType::ScryptoV1 => {
-                let instrumented_code = {
-                    let handle = api.kernel_open_substate_with_default(
-                        address.as_node_id(),
-                        MAIN_BASE_PARTITION
-                            .at_offset(PACKAGE_INSTRUMENTED_CODE_PARTITION_OFFSET)
-                            .unwrap(),
-                        &SubstateKey::Map(scrypto_encode(&export.code_hash).unwrap()),
-                        LockFlags::read_only(),
-                        Some(|| {
-                            let kv_entry = KeyValueEntrySubstate::<()>::default();
-                            IndexedScryptoValue::from_typed(&kv_entry)
-                        }),
-                        SystemLockData::default(),
-                    )?;
-                    let instrumented_code = api.kernel_read_substate(handle)?;
-                    let instrumented_code: PackageCodeInstrumentedCodeEntrySubstate =
-                        instrumented_code.as_typed().unwrap();
-                    api.kernel_close_substate(handle)?;
-                    instrumented_code
-                        .into_value()
-                        .unwrap_or_else(|| panic!("Instrumented code not found: {:?}", export))
-                        .into_latest()
-                };
+                let fuzz_data = scrypto_decode::<Vec<(u8, Vec<Vec<u8>>)>>(input.as_slice());
+                if fuzz_data.is_ok() {
+                    {
+                        // we need to open and close one substate to have correct handle id
+                        let handle = api.kernel_open_substate_with_default(
+                            address.as_node_id(),
+                            MAIN_BASE_PARTITION
+                                .at_offset(PACKAGE_INSTRUMENTED_CODE_PARTITION_OFFSET)
+                                .unwrap(),
+                            &SubstateKey::Map(scrypto_encode(&export.code_hash).unwrap()),
+                            LockFlags::read_only(),
+                            Some(|| {
+                                let kv_entry = KeyValueEntrySubstate::<()>::default();
+                                IndexedScryptoValue::from_typed(&kv_entry)
+                            }),
+                            SystemLockData::default(),
+                        )?;
+                        api.kernel_close_substate(handle)?;
+                    };
 
-                let mut scrypto_vm_instance = {
-                    api.kernel_get_system()
-                        .callback_obj
-                        .scrypto_vm
-                        .create_instance(
-                            address,
-                            export.code_hash,
-                            &instrumented_code.instrumented_code,
-                        )
-                };
+                    let mut runtime = ScryptoRuntime::new(
+                        api,
+                        address.clone(),
+                        export.export_name,
+                    );
+                    runtime
+                        .allocate_buffer(Vec::new())
+                        .expect("Failed to allocate buffer");                    
+                    let rtn = runtime.fuzz(fuzz_data.unwrap()).map_err(|e| {
+                        RuntimeError::VmError(VmError::Wasm(WasmRuntimeError::ExecutionError("Fuzzing error".to_string())))
+                    })?;
+                    IndexedScryptoValue::from_vec(rtn).map_err(|e| {
+                        RuntimeError::SystemUpstreamError(SystemUpstreamError::OutputDecodeError(e))
+                    })?
+                } else {
+                    let instrumented_code = {
+                        let handle = api.kernel_open_substate_with_default(
+                            address.as_node_id(),
+                            MAIN_BASE_PARTITION
+                                .at_offset(PACKAGE_INSTRUMENTED_CODE_PARTITION_OFFSET)
+                                .unwrap(),
+                            &SubstateKey::Map(scrypto_encode(&export.code_hash).unwrap()),
+                            LockFlags::read_only(),
+                            Some(|| {
+                                let kv_entry = KeyValueEntrySubstate::<()>::default();
+                                IndexedScryptoValue::from_typed(&kv_entry)
+                            }),
+                            SystemLockData::default(),
+                        )?;
+                        let instrumented_code = api.kernel_read_substate(handle)?;
+                        let instrumented_code: PackageCodeInstrumentedCodeEntrySubstate =
+                            instrumented_code.as_typed().unwrap();
+                        api.kernel_close_substate(handle)?;
+                        instrumented_code
+                            .into_value()
+                            .unwrap_or_else(|| panic!("Instrumented code not found: {:?}", export))
+                            .into_latest()
+                    };
 
-                api.consume_cost_units(ClientCostingEntry::PrepareWasmCode {
-                    size: instrumented_code.instrumented_code.len(),
-                })?;
+                    let mut scrypto_vm_instance = {
+                        api.kernel_get_system()
+                            .callback_obj
+                            .scrypto_vm
+                            .create_instance(
+                                address,
+                                export.code_hash,
+                                &instrumented_code.instrumented_code,
+                            )
+                    };
 
-                let output = {
-                    scrypto_vm_instance.invoke(export.export_name.as_str(), input, api, &vm_api)?
-                };
+                    api.consume_cost_units(ClientCostingEntry::PrepareWasmCode {
+                        size: instrumented_code.instrumented_code.len(),
+                    })?;
 
-                output
+                    let output = {
+                        scrypto_vm_instance.invoke(export.export_name.as_str(), input, api, &vm_api)?
+                    };
+
+                    output
+                }
             }
         };
 

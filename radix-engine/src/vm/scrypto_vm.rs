@@ -1,4 +1,4 @@
-use crate::errors::{RuntimeError, SystemUpstreamError};
+use crate::errors::{RuntimeError, SystemUpstreamError, VmError};
 use crate::types::*;
 use crate::vm::vm::VmInvoke;
 use crate::vm::wasm::*;
@@ -7,6 +7,8 @@ use crate::vm::VmApi;
 use radix_engine_interface::api::ClientApi;
 use radix_engine_interface::blueprints::package::CodeHash;
 use resources_tracker_macro::trace_resources;
+
+use radix_runtime_fuzzer::*;
 
 pub struct ScryptoVm<W: WasmEngine> {
     pub wasm_engine: W,
@@ -54,6 +56,8 @@ impl<I: WasmInstance> VmInvoke for ScryptoVmInstance<I> {
         Y: ClientApi<RuntimeError>,
         V: VmApi,
     {
+        RADIX_RUNTIME_LOGGER.lock().unwrap().invoke_start(args.as_vec_ref());
+
         let rtn = {
             let mut runtime: Box<dyn WasmRuntime> = Box::new(ScryptoRuntime::new(
                 api,
@@ -74,6 +78,8 @@ impl<I: WasmInstance> VmInvoke for ScryptoVmInstance<I> {
         let output = IndexedScryptoValue::from_vec(rtn).map_err(|e| {
             RuntimeError::SystemUpstreamError(SystemUpstreamError::OutputDecodeError(e))
         })?;
+
+        RADIX_RUNTIME_LOGGER.lock().unwrap().invoke_end(output.as_vec_ref());
 
         Ok(output)
     }

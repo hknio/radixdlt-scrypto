@@ -10,6 +10,9 @@ use radix_engine_interface::types::ClientCostingEntry;
 use radix_engine_interface::types::Level;
 use sbor::rust::vec::Vec;
 
+use radix_runtime_fuzzer::*;
+use radix_runtime_fuzzer_derive::*;
+
 /// A shim between ClientApi and WASM, with buffer capability.
 pub struct ScryptoRuntime<'y, Y>
 where
@@ -52,6 +55,7 @@ where
     }
 }
 
+#[runtime_fuzzer]
 impl<'y, Y> WasmRuntime for ScryptoRuntime<'y, Y>
 where
     Y: ClientApi<RuntimeError>,
@@ -97,7 +101,7 @@ where
                 .map_err(|_| WasmRuntimeError::InvalidNodeId)?,
         );
         let ident = String::from_utf8(ident).map_err(|_| WasmRuntimeError::InvalidString)?;
-        let return_data = self.api.call_method(&receiver, ident.as_str(), args)?;
+        let return_data = self.api.call_method(&receiver, ident.as_str(), args).unwrap();
 
         self.allocate_buffer(return_data)
     }
@@ -139,7 +143,7 @@ where
         let ident = String::from_utf8(ident).map_err(|_| WasmRuntimeError::InvalidString)?;
         let return_data = self
             .api
-            .call_direct_access_method(&receiver, ident.as_str(), args)?;
+            .call_direct_access_method(&receiver, ident.as_str(), args).unwrap();
 
         self.allocate_buffer(return_data)
     }
@@ -161,7 +165,7 @@ where
             blueprint_name.as_str(),
             &function_ident,
             args,
-        )?;
+        ).unwrap();
 
         self.allocate_buffer(return_data)
     }

@@ -112,10 +112,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -1073,7 +1073,7 @@ where
         Ok(global_address)
     }
 
-    #[cfg_attr(feature = "std", catch_unwind_ignore)]
+    //#[cfg_attr(feature = "std", catch_unwind_ignore)]
     pub fn current_actor(&mut self) -> Actor {
         self.api
             .kernel_get_system_state()
@@ -1108,10 +1108,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientFieldApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -1201,10 +1201,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientObjectApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -1590,10 +1590,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientKeyValueEntryApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -1729,10 +1729,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientKeyValueStoreApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -1883,10 +1883,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientActorIndexApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2017,10 +2017,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientActorSortedIndexApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2137,10 +2137,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientBlueprintApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2185,10 +2185,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientCostingApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2277,7 +2277,7 @@ where
     }
 
     #[trace_resources]
-    #[cfg_attr(feature = "std", catch_unwind_ignore)]
+    //#[cfg_attr(feature = "std", catch_unwind_ignore)]
     fn lock_fee(&mut self, locked_fee: LiquidFungibleResource, contingent: bool) {
         // Credit cost units
         let vault_id = self
@@ -2426,10 +2426,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientActorApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2647,10 +2647,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientActorKeyValueEntryApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2740,10 +2740,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientExecutionTraceApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2760,10 +2760,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientTransactionRuntimeApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2849,10 +2849,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientCryptoUtilsApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2941,10 +2941,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> ClientApi<RuntimeError> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2952,10 +2952,10 @@ where
 {
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> KernelNodeApi for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,
@@ -2990,10 +2990,10 @@ where
     }
 }
 
-#[cfg_attr(
+/* #[cfg_attr(
     feature = "std",
     catch_unwind(crate::utils::catch_unwind_system_panic_transformer)
-)]
+)] */
 impl<'a, Y, V> KernelSubstateApi<SystemLockData> for SystemService<'a, Y, V>
 where
     Y: KernelApi<SystemConfig<V>>,

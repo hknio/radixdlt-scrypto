@@ -156,6 +156,10 @@ impl<'a> Executable<'a> {
         &self.references
     }
 
+    pub fn context(&self) -> &ExecutionContext {
+        &self.context
+    }
+
     pub fn auth_zone_params(&self) -> &AuthZoneParams {
         &self.context.auth_zone_params
     }

@@ -35,6 +35,8 @@ use radix_engine_interface::blueprints::transaction_processor::InstructionOutput
 use radix_engine_store_interface::{db_key_mapper::SpreadPrefixKeyMapper, interface::*};
 use transaction::model::*;
 
+use radix_runtime_fuzzer::*;
+
 /// Protocol-defined costing parameters
 #[derive(Debug, Copy, Clone, ScryptoSbor)]
 pub struct CostingParameters {
@@ -1243,12 +1245,15 @@ pub fn execute_transaction_with_system<
     transaction: &Executable,
     init: T::Init,
 ) -> TransactionReceipt {
-    TransactionExecutor::new(substate_db, vm).execute::<T>(
+    RADIX_RUNTIME_LOGGER.lock().unwrap().transaction_execution_start(&transaction);
+    let result = TransactionExecutor::new(substate_db, vm).execute::<T>(
         transaction,
         costing_parameters,
         execution_config,
         init,
-    )
+    );
+    RADIX_RUNTIME_LOGGER.lock().unwrap().transaction_execution_end(result.is_commit_success());
+    result
 }
 
 enum TransactionResultType {

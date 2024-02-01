@@ -239,6 +239,12 @@ where
         let (schema, index, allow_ownership, allow_non_global_ref, schema_origin) =
             self.get_payload_schema(target, &payload_identifier)?;
 
+        // if payload is from fuzzer than don't validate it
+        let instructions = scrypto_decode::<Vec<(u8, Vec<Vec<u8>>)>>(payload);
+        if instructions.is_ok() {
+            return Ok(());
+        }
+
         self.validate_payload(
             payload,
             &schema,
