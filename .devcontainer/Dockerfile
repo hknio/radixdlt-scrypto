@@ -6,4 +6,5 @@ USER vscode
 
 RUN rustup default nightly
 RUN rustup target add wasm32-unknown-unknown --toolchain=nightly
+RUN rustup component add rustfmt --toolchain nightly
 RUN cargo +nightly install cargo-fuzz cargo-afl

@@ -24,6 +24,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
+name = "arbitrary"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d5a26814d8dcb93b0e5a0ff3c6d80a8843bafb21b39e8e18a6f05471870e110"
+dependencies = [
+ "derive_arbitrary",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -124,8 +133,11 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "845141a4fade3f790628b7daaaa298a25b204fb28907eb54febe5142db6ce653"
 dependencies = [
+ "arbitrary",
  "num-integer",
  "num-traits",
+ "serde",
+ "serde-big-array",
 ]
 
 [[package]]
@@ -418,6 +430,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive_arbitrary"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67e77553c4162a157adbf834ebae5b415acbecbeafc7a74b0e886657506a7611"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.29",
+]
+
+[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -670,6 +693,9 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "indexmap"
@@ -686,7 +712,9 @@ name = "indexmap"
 version = "2.0.0-pre"
 source = "git+https://github.com/bluss/indexmap?rev=eedabaca9f84e520eab01325b305c08f3773e66c#eedabaca9f84e520eab01325b305c08f3773e66c"
 dependencies = [
+ "arbitrary",
  "hashbrown 0.13.2",
+ "serde",
 ]
 
 [[package]]
@@ -1151,6 +1179,7 @@ dependencies = [
 name = "radix-engine-common"
 version = "1.2.0-dev"
 dependencies = [
+ "arbitrary",
  "bech32",
  "blake2",
  "blst",
@@ -1165,6 +1194,7 @@ dependencies = [
  "radix-engine-derive",
  "sbor",
  "secp256k1",
+ "serde",
  "sha3",
  "strum",
  "utils",
@@ -1184,6 +1214,7 @@ dependencies = [
 name = "radix-engine-interface"
 version = "1.2.0-dev"
 dependencies = [
+ "arbitrary",
  "bitflags 1.3.2",
  "const-sha1",
  "hex",
@@ -1279,13 +1310,10 @@ dependencies = [
 name = "radix-runtime-fuzzer-derive"
 version = "0.1.0"
 dependencies = [
- "hex",
- "once_cell",
+ "heck",
  "proc-macro2",
  "quote",
- "radix-engine-common",
  "radix-runtime-fuzzer",
- "sbor",
  "syn 1.0.93",
 ]
 
@@ -1491,6 +1519,7 @@ dependencies = [
 name = "sbor"
 version = "1.2.0-dev"
 dependencies = [
+ "arbitrary",
  "const-sha1",
  "hex",
  "lazy_static",
@@ -1584,6 +1613,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf9e0fcba69a370eed61bcf2b728575f726b50b55cba78064753d708ddc7549e"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-big-array"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3323f09a748af288c3dc2474ea6803ee81f118321775bffa3ac8f7e65c5e90e7"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -1925,6 +1963,7 @@ name = "utils"
 version = "1.2.0-dev"
 dependencies = [
  "indexmap 2.0.0-pre",
+ "serde",
 ]
 
 [[package]]

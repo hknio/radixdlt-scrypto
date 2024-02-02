@@ -11,6 +11,7 @@ use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::{CollectionIndex, FieldValue, KVEntry};
 use radix_engine_interface::blueprints::package::*;
 use radix_engine_interface::schema::KeyValueStoreGenericSubstitutions;
+use radix_runtime_fuzzer::RadixRuntimeFuzzerInput;
 use sbor::rust::vec::Vec;
 
 /// Metadata for schema validation to help with location of certain schemas
@@ -240,7 +241,7 @@ where
             self.get_payload_schema(target, &payload_identifier)?;
 
         // if payload is from fuzzer than don't validate it
-        let instructions = scrypto_decode::<Vec<(u8, Vec<Vec<u8>>)>>(payload);
+        let instructions = scrypto_decode::<RadixRuntimeFuzzerInput>(payload);
         if instructions.is_ok() {
             return Ok(());
         }

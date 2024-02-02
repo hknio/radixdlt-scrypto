@@ -3,3 +3,4 @@ mod scrypto_runtime;
 
 pub use no_op_runtime::NoOpWasmRuntime;
 pub use scrypto_runtime::ScryptoRuntime;
+pub use scrypto_runtime::RadixRuntimeFuzzerInstruction;

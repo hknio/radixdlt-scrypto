@@ -10,7 +10,7 @@ use crate::vm::wasm::{ScryptoV1WasmValidator, WasmEngine};
 use crate::vm::{NativeVm, NativeVmExtension, ScryptoVm};
 use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::ClientApi;
-use radix_runtime_fuzzer::RadixRuntimeFuzzer;
+use radix_runtime_fuzzer::{RadixRuntimeFuzzer, RadixRuntimeFuzzerInput};
 
 use super::wasm::{WasmRuntime, WasmRuntimeError, SCRYPTO_V1_LATEST_MINOR_VERSION};
 use super::wasm_runtime::ScryptoRuntime;
@@ -171,7 +171,7 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                 output
             }
             VmType::ScryptoV1 => {
-                let fuzz_data = scrypto_decode::<Vec<(u8, Vec<Vec<u8>>)>>(input.as_slice());
+                let fuzz_data = scrypto_decode::<RadixRuntimeFuzzerInput>(input.as_slice());
                 if fuzz_data.is_ok() {
                     {
                         // we need to open and close one substate to have correct handle id
@@ -199,7 +199,7 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                     runtime
                         .allocate_buffer(Vec::new())
                         .expect("Failed to allocate buffer");                    
-                    let rtn = runtime.fuzz(fuzz_data.unwrap()).map_err(|e| {
+                    let rtn = runtime.execute_instructions(fuzz_data.unwrap()).map_err(|e| {
                         RuntimeError::VmError(VmError::Wasm(WasmRuntimeError::ExecutionError("Fuzzing error".to_string())))
                     })?;
                     IndexedScryptoValue::from_vec(rtn).map_err(|e| {

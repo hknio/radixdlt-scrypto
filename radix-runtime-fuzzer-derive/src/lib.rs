@@ -4,19 +4,30 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{parse_macro_input, parse_quote, ImplItem, Pat, WhereClause, WherePredicate};
+use heck::ToUpperCamelCase;
 
 #[proc_macro_attribute]
 pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenStream) -> TokenStream {
-    // Parse the input into a syntax tree
     let mut input = parse_macro_input!(item as syn::ItemImpl);
+
+    // Generate RadixRuntimeFuzzerInstruction enum
+    let mut enum_def = String::new();
+    enum_def += "#[derive(Debug, Clone, PartialEq, Eq, ScryptoSbor)]\n";
+    enum_def += "pub enum RadixRuntimeFuzzerInstruction {\n";
+    enum_def += "#[sbor(discriminator(0))]";
+    enum_def += "Return(Vec<u8>),\n";
     
-    // Iterate over the items and modify only the methods
+    // Generate execute_instructions function which executes RadixRuntimeFuzzerInstruction
     let mut exec_func = String::new();
+    exec_func += "fn execute_instructions(&mut self, instructions : Vec<Vec<u8>>) -> Result<Vec<u8>, ()> {\n";
+    exec_func += "for instruction_data in instructions {\n";
+    exec_func += "let instruction : RadixRuntimeFuzzerInstruction = scrypto_decode(&instruction_data).unwrap();\n";
+    exec_func += "match instruction {\n";
+    exec_func += "RadixRuntimeFuzzerInstruction::Return(data) => {\n";
+    exec_func += "return Ok(data)\n";
+    exec_func += "},\n";
 
-    exec_func += "fn execute_func(&mut self, func_id: u8, fuzz_args: Vec<Vec<u8>>) -> Result<(), ()> {\n";
-    exec_func += "match func_id {\n";
-
-    let mut func_id = 1;
+    let mut func_id = 1; // 0 is reserved for return
     input.items.iter_mut().for_each(|item| {
         if let ImplItem::Method(method) = item {
             let method_name = &method.sig.ident;
@@ -35,50 +46,43 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
                         None
                     }
                 } else {
-                    // Skip `self` and other non-typed arguments
                     None
                 }
             }).collect();
 
+            let enum_name = method_name.to_string().to_upper_camel_case();
+            enum_def += &format!("#[sbor(discriminator({}))]\n", func_id);
+            enum_def += &format!("{}({}),\n", enum_name, args_and_types.iter().map(|(_, arg_type)| arg_type.to_string()).collect::<Vec<String>>().join(", "));
 
-            // Create a new logging statement
-            //let log_statement = quote! {
-            //    println!("Function {} called with args: {:?}", stringify!(#method_name), (#(#args),*));
-            //};
-
-            let mut arg_id : u8 = 0;
-            exec_func += &format!("{} => {{\n", func_id);
-            exec_func += &format!("if fuzz_args.len() != {} {{\n", args_and_types.len());
-            exec_func += &format!("panic!(\"Wrong number of arguments for function {} (expected {}, got {{}})\", fuzz_args.len());\n", method_name, args_and_types.len());
-            exec_func += "}\n";
-            for (arg, arg_type) in args_and_types.iter() {
-                exec_func += &format!("let {}: {} = scrypto_decode(&fuzz_args[{}]).unwrap();\n", arg, arg_type, arg_id);                
-                arg_id += 1;
-            }
-            exec_func += &format!("self.{}({}).map(|_value| ()).map_err(|_error| ())?;", method_name, args_and_types.iter().map(|(arg, _)| arg.to_string()).collect::<Vec<String>>().join(", "));
+            exec_func += &format!("RadixRuntimeFuzzerInstruction::{}({}) => {{\n", enum_name, args_and_types.iter().map(|(arg, _)| arg.to_string()).collect::<Vec<String>>().join(", "));
+            exec_func += &format!("self.{}({}).map_err(|_error| ())?;\n", method_name, args_and_types.iter().map(|(arg, _)| arg.to_string()).collect::<Vec<String>>().join(", "));
             exec_func += "},\n";
 
+            func_id += 1;
+
+            if cfg!(not(feature="runtime_logger")) {
+                return;
+            }            
+
+            // log method arguments
             let mut pre_exec = String::new();
             pre_exec += "{\n";
-            pre_exec += "let mut fuzz_log_data : Vec<Vec<u8>> = Vec::new();\n";
-            for (arg, arg_type) in args_and_types.iter() {
-                pre_exec += &format!("fuzz_log_data.push(scrypto_encode(&{}).unwrap());\n", arg);
-            }
-            pre_exec += &format!("RADIX_RUNTIME_LOGGER.lock().unwrap().runtime_call_start(String::from(\"{}\"), {}, fuzz_log_data);\n", method_name, func_id);
+            pre_exec += &format!("let mut fuzz_log_data_enum = RadixRuntimeFuzzerInstruction::{}({});\n", enum_name, args_and_types.iter().map(|(arg, _)| arg.to_string() + ".clone()").collect::<Vec<String>>().join(", "));
+            pre_exec += "let mut fuzz_log_data = scrypto_encode(&fuzz_log_data_enum).unwrap();\n";
+            pre_exec += &format!("radix_runtime_logger!(runtime_call_start(String::from(\"{}\"), fuzz_log_data));\n", method_name);
             pre_exec += "}\n";            
-            let pre_exec: proc_macro2::TokenStream = syn::parse_str(&pre_exec).unwrap();
+            let pre_exec: proc_macro2::TokenStream = syn::parse_str(&pre_exec).expect("Failed to parse pre_exec");
 
+            // log method return value
             let mut post_exec = String::new();
             post_exec += "{\n";
-            post_exec += "let mut fuzz_log_data : Vec<Vec<u8>> = Vec::new();\n";
+            post_exec += "let mut fuzz_log_data : Option<Vec<u8>> = None;\n";
             post_exec += "if result.is_ok() {\n";
-            post_exec += "fuzz_log_data.push(scrypto_encode(&result.as_ref().unwrap()).unwrap());\n";
-            post_exec += "} else {\n";
-            post_exec += "fuzz_log_data.push(Vec::new());\n";
+            post_exec += "fuzz_log_data = Some(scrypto_encode(&result.as_ref().unwrap()).unwrap());\n";
             post_exec += "}\n";
-            post_exec += &format!("RADIX_RUNTIME_LOGGER.lock().unwrap().runtime_call_end(String::from(\"{}\"), {}, fuzz_log_data);\n", method_name, func_id);
+            post_exec += &format!("radix_runtime_logger!(runtime_call_end(String::from(\"{}\"), fuzz_log_data));\n", method_name);
             post_exec += "}\n";
-            let post_exec: proc_macro2::TokenStream = syn::parse_str(&post_exec).unwrap();
+            let post_exec: proc_macro2::TokenStream = syn::parse_str(&post_exec).expect("Failed to parse post_exec");
 
 
             let original_body = &method.block;
@@ -90,20 +94,19 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
                     result
                 }
             };
-            func_id += 1;
-
-            // Parse the combined block and assign it to the method
             method.block = syn::parse2(combined_block).expect("Failed to parse new method body");
         }
     });
 
-    exec_func += "_ => { return Err(()); }\n";
     exec_func += "};\n";
-    exec_func += "Ok(())\n";
+    exec_func += "};\n";
+    exec_func += "Err(())\n";
     exec_func += "}\n";
+
+    let exec_func: syn::ImplItem = syn::parse_str(&exec_func).expect("Failed to parse exec_func");
     
-    let exec_func: syn::ImplItem = syn::parse_str(&exec_func).unwrap();
-    
+    enum_def += "}\n";
+    let enum_def: syn::ItemEnum = syn::parse_str(&enum_def).expect("Failed to parse enum_def");
 
     let mut new_impl = input.clone(); // Clone the original implementation
 
@@ -138,6 +141,8 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
         use std::fs::OpenOptions;
         use std::io::prelude::*;
 
+        #enum_def
+
         #input
 
         #new_impl
@@ -145,3 +150,5 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
 
     output.into()
 }
+
+

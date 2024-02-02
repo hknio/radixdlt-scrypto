@@ -1245,14 +1245,14 @@ pub fn execute_transaction_with_system<
     transaction: &Executable,
     init: T::Init,
 ) -> TransactionReceipt {
-    RADIX_RUNTIME_LOGGER.lock().unwrap().transaction_execution_start(&transaction);
+    radix_runtime_logger!(transaction_execution_start(&transaction));
     let result = TransactionExecutor::new(substate_db, vm).execute::<T>(
         transaction,
         costing_parameters,
         execution_config,
         init,
     );
-    RADIX_RUNTIME_LOGGER.lock().unwrap().transaction_execution_end(result.is_commit_success());
+    radix_runtime_logger!(transaction_execution_end(result.is_commit_success()));
     result
 }
 

@@ -140,7 +140,7 @@ impl TransactionProcessorBlueprint {
         let mut processor = TransactionProcessor::new(blobs, global_address_reservations);
         let mut outputs = Vec::new();
         for (index, inst) in instructions.into_iter().enumerate() {
-            RADIX_RUNTIME_LOGGER.lock().unwrap().instruction_start(&inst);
+            radix_runtime_logger!(instruction_start(&inst));
             api.update_instruction_index(index)?;
             
             let result = match inst {

@@ -1157,8 +1157,9 @@ impl PackageNativePackage {
             .map_err(|e| RuntimeError::ApplicationError(ApplicationError::PackageError(e)))?;
 
         // Validate VM specific properties
-        let instrumented_code =
-            VmPackageValidation::validate(&definition, vm_type, &original_code, vm_api)?;
+        //let instrumented_code =
+        //    VmPackageValidation::validate(&definition, vm_type, &original_code, vm_api)?;
+        let instrumented_code = Some(original_code.clone());
 
         // Build Package structure
         let mut definitions = index_map_new();
