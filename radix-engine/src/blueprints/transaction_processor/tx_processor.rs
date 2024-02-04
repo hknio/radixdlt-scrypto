@@ -22,7 +22,7 @@ use transaction::data::TransformHandler;
 use transaction::model::*;
 use transaction::validation::*;
 
-use radix_runtime_fuzzer::*;
+use radix_runtime_fuzzer_common::*;
 
 #[derive(Debug, Eq, PartialEq, ScryptoSbor)]
 pub struct TransactionProcessorRunInput {

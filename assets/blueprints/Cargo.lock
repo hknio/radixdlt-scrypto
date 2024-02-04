@@ -851,7 +851,7 @@ dependencies = [
  "radix-engine-interface",
  "radix-engine-macros",
  "radix-engine-store-interface",
- "radix-runtime-fuzzer",
+ "radix-runtime-fuzzer-common",
  "radix-runtime-fuzzer-derive",
  "resources-tracker-macro",
  "sbor",
@@ -980,7 +980,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "radix-runtime-fuzzer"
+name = "radix-runtime-fuzzer-common"
 version = "0.1.0"
 dependencies = [
  "hex",
@@ -1000,7 +1000,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "radix-runtime-fuzzer",
+ "radix-runtime-fuzzer-common",
  "syn 1.0.93",
 ]
 

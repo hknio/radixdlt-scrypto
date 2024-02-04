@@ -2,7 +2,7 @@ use radix_engine::{
     transaction::TransactionReceiptV1, types::scrypto_decode, vm::NoExtension
 };
 use radix_engine_stores::memory_db::InMemorySubstateDatabase;
-use radix_runtime_fuzzer::RadixRuntimeFuzzerTransaction;
+use radix_runtime_fuzzer_common::RadixRuntimeFuzzerTransaction;
 
 use radix_engine::transaction::{CostingParameters, ExecutionConfig};
 use radix_engine_common::prelude::*;

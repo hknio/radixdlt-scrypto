@@ -12,7 +12,7 @@ use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::ClientApi;
 
 #[cfg(feature="radix_engine_fuzzing")]
-use radix_runtime_fuzzer::{INVOKE_MAGIC_STRING, RADIX_RUNTIME_FUZZING_INVOKES, RadixRuntimeFuzzer};
+use radix_runtime_fuzzer_common::{INVOKE_MAGIC_STRING, RADIX_RUNTIME_FUZZING_INVOKES, RadixRuntimeFuzzer};
 
 use super::wasm::{WasmRuntime, WasmRuntimeError, SCRYPTO_V1_LATEST_MINOR_VERSION};
 use super::wasm_runtime::ScryptoRuntime;

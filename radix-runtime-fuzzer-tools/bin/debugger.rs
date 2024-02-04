@@ -1,12 +1,12 @@
 use radix_engine::types::{manifest_decode, scrypto_decode, ManifestValue, ScryptoDecoder, ScryptoValue, ScryptoValueKind};
 use radix_engine_common::constants::{SCRYPTO_SBOR_V1_MAX_DEPTH, SCRYPTO_SBOR_V1_PAYLOAD_PREFIX};
-use radix_runtime_fuzzer::{RadixRuntimeFuzzerInput, RadixRuntimeFuzzerTransaction, RadixRuntimeFuzzingInvokes, RADIX_RUNTIME_FUZZING_INVOKES};
+use radix_runtime_fuzzer_common::{RadixRuntimeFuzzerInput, RadixRuntimeFuzzerTransaction, RadixRuntimeFuzzingInvokes, RADIX_RUNTIME_FUZZING_INVOKES};
 use transaction::model::{InstructionV1, InstructionsV1};
 use std::{io::Read, mem};
 use std::time::Instant;
 use radix_engine::vm::{wasm_runtime::RadixRuntimeFuzzerInstruction};
 
-use radix_runtime_fuzzer_executor::FuzzRunner;
+use radix_runtime_fuzzer_tools::FuzzRunner;
 use sbor::{Decoder, Value};
 
 fn process_invoke(input: &RadixRuntimeFuzzerInput, depth: usize) {

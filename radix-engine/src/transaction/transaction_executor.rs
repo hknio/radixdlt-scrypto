@@ -35,7 +35,7 @@ use radix_engine_interface::blueprints::transaction_processor::InstructionOutput
 use radix_engine_store_interface::{db_key_mapper::SpreadPrefixKeyMapper, interface::*};
 use transaction::model::*;
 
-use radix_runtime_fuzzer::*;
+use radix_runtime_fuzzer_common::*;
 
 /// Protocol-defined costing parameters
 #[derive(Debug, Copy, Clone, ScryptoSbor)]

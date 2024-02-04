@@ -11,7 +11,7 @@ use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::{CollectionIndex, FieldValue, KVEntry};
 use radix_engine_interface::blueprints::package::*;
 use radix_engine_interface::schema::KeyValueStoreGenericSubstitutions;
-use radix_runtime_fuzzer::INVOKE_MAGIC_STRING;
+use radix_runtime_fuzzer_common::INVOKE_MAGIC_STRING;
 use sbor::rust::vec::Vec;
 
 /// Metadata for schema validation to help with location of certain schemas

@@ -1,7 +1,3 @@
-mod fuzzer;
-mod logger;
-mod transaction;
+mod fuzz_runner;
 
-pub use fuzzer::*;
-pub use logger::*;
-pub use transaction::*;
+pub use fuzz_runner::FuzzRunner;

@@ -8,7 +8,7 @@ use radix_engine_interface::api::ClientApi;
 use radix_engine_interface::blueprints::package::CodeHash;
 use resources_tracker_macro::trace_resources;
 
-use radix_runtime_fuzzer::*;
+use radix_runtime_fuzzer_common::*;
 
 pub struct ScryptoVm<W: WasmEngine> {
     pub wasm_engine: W,

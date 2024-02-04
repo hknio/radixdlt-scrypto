@@ -1,5 +1,5 @@
 use radix_engine::types::scrypto_decode;
-use radix_runtime_fuzzer::{RadixRuntimeFuzzerTransaction};
+use radix_runtime_fuzzer_common::{RadixRuntimeFuzzerTransaction};
 
 use radix_engine::{system::bootstrap::Bootstrapper, transaction::{execute_and_commit_transaction, CostingParameters, ExecutionConfig}, vm::{wasm::{DefaultWasmEngine, WasmValidatorConfigV1}, DefaultNativeVm, ScryptoVm, Vm}};
 use scrypto_test::runner::TestRunnerBuilder;

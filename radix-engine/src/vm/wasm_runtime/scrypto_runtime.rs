@@ -10,7 +10,7 @@ use radix_engine_interface::types::ClientCostingEntry;
 use radix_engine_interface::types::Level;
 use sbor::rust::vec::Vec;
 
-use radix_runtime_fuzzer::*;
+use radix_runtime_fuzzer_common::*;
 use radix_runtime_fuzzer_derive::*;
 
 /// A shim between ClientApi and WASM, with buffer capability.

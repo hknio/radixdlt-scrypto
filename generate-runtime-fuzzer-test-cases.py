@@ -11,7 +11,7 @@ def main():
     original_dir = os.getcwd()
 
     # Step 1
-    os.chdir("radix-runtime-fuzzer-executor")
+    os.chdir("radix-runtime-fuzzer")
     run_command("cargo build --release --bin validator")
     os.chdir(original_dir)
 

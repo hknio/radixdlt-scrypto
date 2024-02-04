@@ -4,13 +4,13 @@ use libfuzzer_sys::fuzz_target;
 use once_cell::sync::Lazy;
 use radix_engine::{types::scrypto_decode, vm::{wasm_runtime::RadixRuntimeFuzzerInstruction, NoExtension}};
 use radix_engine_stores::memory_db::InMemorySubstateDatabase;
-use radix_runtime_fuzzer::{RadixRuntimeFuzzerInput, RadixRuntimeFuzzerTransaction};
+use radix_runtime_fuzzer_common::{RadixRuntimeFuzzerInput, RadixRuntimeFuzzerTransaction};
 
 use radix_engine::{system::bootstrap::Bootstrapper, transaction::{execute_and_commit_transaction, CostingParameters, ExecutionConfig}, vm::{wasm::{DefaultWasmEngine, WasmValidatorConfigV1}, DefaultNativeVm, ScryptoVm, Vm}};
 use scrypto_test::runner::{TestRunner, TestRunnerBuilder, TestRunnerSnapshot};
 use radix_engine_common::prelude::*;
 
-use radix_runtime_fuzzer_executor::FuzzRunner;
+use radix_runtime_fuzzer::FuzzRunner;
 use transaction::model::InstructionV1;
 
 struct Fuzzer {
@@ -108,9 +108,7 @@ impl Fuzzer {
 fuzz_target!(|data: &[u8]| {
     unsafe {
         pub static mut FUZZER: Lazy<Fuzzer> = Lazy::new(|| Fuzzer::new());
-        pub static CRASH_DATA: &[u8; 8784] = include_bytes!("../crash-0bdb2efece8bba2625c4d59fe85f076cb947d51d");
-        if FUZZER.run(data).is_ok() {
-            FUZZER.run(CRASH_DATA);
+        if let Ok(status) = FUZZER.run(data) {
             //println!("Success");
         }
     }

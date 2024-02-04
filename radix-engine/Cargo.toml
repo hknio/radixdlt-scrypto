@@ -44,7 +44,7 @@ wasmer-compiler-singlepass = { version = "2.2.1", optional = true }
 serde_json = { version = "1.0.81", optional = true, default-features = false }
 lazy_static = { version = "1.4.0" }
 
-radix-runtime-fuzzer = { path = "../radix-runtime-fuzzer" }
+radix-runtime-fuzzer-common = { path = "../radix-runtime-fuzzer-common" }
 radix-runtime-fuzzer-derive = { path = "../radix-runtime-fuzzer-derive" }
 
 [dev-dependencies]
