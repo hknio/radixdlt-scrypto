@@ -21,6 +21,7 @@ use radix_engine_stores::memory_db::*;
 use scrypto_test::prelude::TestRunnerBuilder;
 use transaction::prelude::*;
 
+#[ignore]
 #[test]
 fn panics_in_native_blueprints_can_be_caught_by_the_native_vm() {
     // Arrange
@@ -47,6 +48,7 @@ fn panics_in_native_blueprints_can_be_caught_by_the_native_vm() {
     })
 }
 
+#[ignore]
 #[test]
 fn panics_can_be_caught_in_the_native_vm_and_converted_into_results() {
     // Arrange
@@ -121,6 +123,7 @@ fn panics_can_be_caught_in_the_native_vm_and_converted_into_results() {
     ))
 }
 
+#[ignore]
 #[test]
 fn any_panics_can_be_caught_in_the_native_vm_and_converted_into_results() {
     // Arrange

@@ -11,6 +11,9 @@ use crate::*;
 #[cfg(feature = "radix_engine_fuzzing")]
 use arbitrary::Arbitrary;
 
+use std::mem;
+use std::ptr;
+
 /// Represents any value conforming to the SBOR value model.
 #[cfg_attr(feature = "radix_engine_fuzzing", derive(Arbitrary))]
 #[cfg_attr(
@@ -188,14 +191,35 @@ impl<X: CustomValueKind, E: Encoder<X>, Y: Encode<X, E> + CustomValue<X>> Encode
             } => {
                 encoder.write_value_kind(*element_value_kind)?;
                 encoder.write_size(elements.len())?;
-                for item in elements {
-                    if item.get_value_kind() != *element_value_kind {
-                        return Err(EncodeError::MismatchingArrayElementValueKind {
-                            element_value_kind: element_value_kind.as_u8(),
-                            actual_value_kind: item.get_value_kind().as_u8(),
-                        });
+                match element_value_kind {
+                    ValueKind::U8 => {
+                        let buffer : &mut Vec<u8> = encoder.get_buffer();
+                        buffer.reserve(elements.len() + 1024 as usize);
+                        for item in elements {
+                            match item {
+                                Value::U8 { value } => {
+                                    buffer.push(*value);
+                                }
+                                _ => {
+                                    return Err(EncodeError::MismatchingArrayElementValueKind {
+                                        element_value_kind: element_value_kind.as_u8(),
+                                        actual_value_kind: item.get_value_kind().as_u8(),
+                                    });
+                                }
+                            }
+                        }
                     }
-                    encoder.encode_deeper_body(item)?;
+                    _ => {
+                        for item in elements {
+                            if item.get_value_kind() != *element_value_kind {
+                                return Err(EncodeError::MismatchingArrayElementValueKind {
+                                    element_value_kind: element_value_kind.as_u8(),
+                                    actual_value_kind: item.get_value_kind().as_u8(),
+                                });
+                            }
+                            encoder.encode_deeper_body(item)?;
+                        }
+                    }
                 }
             }
             Value::Tuple { fields } => {
@@ -308,15 +332,27 @@ impl<X: CustomValueKind, D: Decoder<X>, Y: Decode<X, D> + CustomValue<X>> Decode
             }
             ValueKind::Array => {
                 let element_value_kind = decoder.read_value_kind()?;
-                let length = decoder.read_size()?;
-                let mut elements = Vec::with_capacity(if length <= 1024 { length } else { 1024 });
-                for _ in 0..length {
-                    elements.push(decoder.decode_deeper_body_with_value_kind(element_value_kind)?);
+                match element_value_kind {
+                    ValueKind::U8 => {
+                        let length = decoder.read_size()?;
+                        let slice = decoder.read_slice(length as usize)?;
+                        Ok(Value::Array {
+                            element_value_kind,
+                            elements: slice.iter().map(|v| Value::U8 { value: *v }).collect(),
+                        })
+                    }
+                    _ => {
+                        let length = decoder.read_size()?;
+                        let mut elements = Vec::with_capacity(if length <= 1024 { length } else { 1024 });
+                        for _ in 0..length {
+                            elements.push(decoder.decode_deeper_body_with_value_kind(element_value_kind)?);
+                        }
+                        Ok(Value::Array {
+                            element_value_kind,
+                            elements,
+                        })
+                    }
                 }
-                Ok(Value::Array {
-                    element_value_kind,
-                    elements,
-                })
             }
             ValueKind::Map => {
                 let key_value_kind = decoder.read_value_kind()?;

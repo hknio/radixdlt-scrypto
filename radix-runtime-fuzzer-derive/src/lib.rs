@@ -69,7 +69,7 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
             pre_exec += "{\n";
             pre_exec += &format!("let mut fuzz_log_data_enum = RadixRuntimeFuzzerInstruction::{}({});\n", enum_name, args_and_types.iter().map(|(arg, _)| arg.to_string() + ".clone()").collect::<Vec<String>>().join(", "));
             pre_exec += "let mut fuzz_log_data = scrypto_encode(&fuzz_log_data_enum).unwrap();\n";
-            pre_exec += &format!("radix_runtime_logger!(runtime_call_start(String::from(\"{}\"), fuzz_log_data));\n", method_name);
+            pre_exec += "radix_runtime_logger!(runtime_call_start(fuzz_log_data));\n";
             pre_exec += "}\n";            
             let pre_exec: proc_macro2::TokenStream = syn::parse_str(&pre_exec).expect("Failed to parse pre_exec");
 
@@ -80,7 +80,7 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
             post_exec += "if result.is_ok() {\n";
             post_exec += "fuzz_log_data = Some(scrypto_encode(&result.as_ref().unwrap()).unwrap());\n";
             post_exec += "}\n";
-            post_exec += &format!("radix_runtime_logger!(runtime_call_end(String::from(\"{}\"), fuzz_log_data));\n", method_name);
+            post_exec += "radix_runtime_logger!(runtime_call_end(fuzz_log_data));\n";
             post_exec += "}\n";
             let post_exec: proc_macro2::TokenStream = syn::parse_str(&post_exec).expect("Failed to parse post_exec");
 

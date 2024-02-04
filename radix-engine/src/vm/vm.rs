@@ -10,7 +10,9 @@ use crate::vm::wasm::{ScryptoV1WasmValidator, WasmEngine};
 use crate::vm::{NativeVm, NativeVmExtension, ScryptoVm};
 use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::ClientApi;
-use radix_runtime_fuzzer::{RadixRuntimeFuzzer, RadixRuntimeFuzzerInput};
+
+#[cfg(feature="radix_engine_fuzzing")]
+use radix_runtime_fuzzer::{INVOKE_MAGIC_STRING, RADIX_RUNTIME_FUZZING_INVOKES, RadixRuntimeFuzzer};
 
 use super::wasm::{WasmRuntime, WasmRuntimeError, SCRYPTO_V1_LATEST_MINOR_VERSION};
 use super::wasm_runtime::ScryptoRuntime;
@@ -171,8 +173,15 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                 output
             }
             VmType::ScryptoV1 => {
-                let fuzz_data = scrypto_decode::<RadixRuntimeFuzzerInput>(input.as_slice());
-                if fuzz_data.is_ok() {
+                #[cfg(feature="radix_engine_fuzzing")]
+                {
+                    let invoke_string = scrypto_decode::<String>(input.as_slice())
+                        .map_err(|e| RuntimeError::SystemUpstreamError(SystemUpstreamError::InputDecodeError(e)))?;
+                    let invoke_id_string = invoke_string.replace(&format!("{}_", INVOKE_MAGIC_STRING), "");
+                    let invoke_id = invoke_id_string.parse::<usize>()
+                        .map_err(|_| RuntimeError::SystemUpstreamError(SystemUpstreamError::FnNotFound("Invalid invoke number".to_string())))?;
+                    let fuzz_data = RADIX_RUNTIME_FUZZING_INVOKES.lock().unwrap().get(invoke_id)
+                        .ok_or(RuntimeError::SystemUpstreamError(SystemUpstreamError::FnNotFound("Invoke not found".to_string())))?.clone();
                     {
                         // we need to open and close one substate to have correct handle id
                         let handle = api.kernel_open_substate_with_default(
@@ -199,13 +208,15 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                     runtime
                         .allocate_buffer(Vec::new())
                         .expect("Failed to allocate buffer");                    
-                    let rtn = runtime.execute_instructions(fuzz_data.unwrap()).map_err(|e| {
+                    let rtn = runtime.execute_instructions(fuzz_data).map_err(|_| {
                         RuntimeError::VmError(VmError::Wasm(WasmRuntimeError::ExecutionError("Fuzzing error".to_string())))
                     })?;
                     IndexedScryptoValue::from_vec(rtn).map_err(|e| {
                         RuntimeError::SystemUpstreamError(SystemUpstreamError::OutputDecodeError(e))
                     })?
-                } else {
+                }
+                #[cfg(not(feature="radix_engine_fuzzing"))]
+                {
                     let instrumented_code = {
                         let handle = api.kernel_open_substate_with_default(
                             address.as_node_id(),

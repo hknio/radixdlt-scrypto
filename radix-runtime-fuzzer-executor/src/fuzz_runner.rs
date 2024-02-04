@@ -1,22 +1,14 @@
 use radix_engine::{
-    types::scrypto_decode,
-    vm::{wasm_runtime::RadixRuntimeFuzzerInstruction, NoExtension},
+    transaction::TransactionReceiptV1, types::scrypto_decode, vm::NoExtension
 };
 use radix_engine_stores::memory_db::InMemorySubstateDatabase;
 use radix_runtime_fuzzer::RadixRuntimeFuzzerTransaction;
 
-use radix_engine::{
-    system::bootstrap::Bootstrapper,
-    transaction::{execute_and_commit_transaction, CostingParameters, ExecutionConfig},
-    vm::{
-        wasm::{DefaultWasmEngine, WasmValidatorConfigV1},
-        DefaultNativeVm, ScryptoVm, Vm,
-    },
-};
+use radix_engine::transaction::{CostingParameters, ExecutionConfig};
 use radix_engine_common::prelude::*;
 use scrypto_test::runner::{TestRunner, TestRunnerBuilder, TestRunnerSnapshot};
 
-struct FuzzRunner {
+pub struct FuzzRunner {
     snapshot: TestRunnerSnapshot,
     test_runner: TestRunner<NoExtension, InMemorySubstateDatabase>,
 }
@@ -34,19 +26,21 @@ impl FuzzRunner {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.test_runner = TestRunnerBuilder::new()
-            .without_trace()
-            .build_from_snapshot(self.snapshot.clone());
+    pub fn update_snapshot(&mut self) {
+        self.snapshot = self.test_runner.create_snapshot();
     }
 
-    pub fn execute(&mut self, mut tx: RadixRuntimeFuzzerTransaction) -> bool {
+    pub fn reset(&mut self) {
+        self.test_runner.restore_snapshot(self.snapshot.clone());
+    }
+
+    pub fn execute(&mut self, mut tx: RadixRuntimeFuzzerTransaction) -> TransactionReceiptV1 {
+        tx.set_global_invokes();
         self.test_runner
             .execute_transaction(
                 tx.get_executable(),
                 CostingParameters::default(),
                 ExecutionConfig::for_notarized_transaction(NetworkDefinition::simulator()),
             )
-            .is_commit_success()
     }
 }

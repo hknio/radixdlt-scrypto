@@ -15,7 +15,7 @@ transaction = { path = "../transaction" }
 once_cell = "1.19.0"
 hex = "0.4.3"
 radix-engine-common = { path = "../radix-engine-common", default-features = false, features = ["radix_engine_fuzzing"] }
-radix-runtime-fuzzer = { path = "../radix-runtime-fuzzer" }
+radix-runtime-fuzzer = { path = "../radix-runtime-fuzzer", features = ["radix_engine_fuzzing"] }
 radix-engine = { path = "../radix-engine", features = ["radix_engine_fuzzing"]}
 radix-engine-store-interface = { path = "../radix-engine-store-interface" }
 radix-engine-stores = { path = "../radix-engine-stores" }
@@ -23,11 +23,11 @@ scrypto-test = { path = "../scrypto-test" }
 libfuzzer-sys = { version = "0.4" }
 
 [profile.release]
-debug = true
+debug = 2
 
 [[bin]]
-name = "executor"
-path = "bin/executor.rs"
+name = "benchmark"
+path = "bin/benchmark.rs"
 bench = false
 
 [[bin]]
@@ -39,3 +39,16 @@ bench = false
 name = "fuzzer"
 path = "bin/fuzzer.rs"
 bench = false
+
+[[bin]]
+name = "debugger"
+path = "bin/debugger.rs"
+bench = false
+
+[[bin]]
+name = "validator"
+path = "bin/validator.rs"
+bench = false
+
+[features]
+default = ["radix-engine/radix_engine_fuzzing"]

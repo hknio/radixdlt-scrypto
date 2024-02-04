@@ -1157,9 +1157,11 @@ impl PackageNativePackage {
             .map_err(|e| RuntimeError::ApplicationError(ApplicationError::PackageError(e)))?;
 
         // Validate VM specific properties
-        //let instrumented_code =
-        //    VmPackageValidation::validate(&definition, vm_type, &original_code, vm_api)?;
-        let instrumented_code = Some(original_code.clone());
+        let instrumented_code = if cfg!(feature="radix_engine_fuzzing") {
+            Some(original_code.clone())
+        } else {
+            VmPackageValidation::validate(&definition, vm_type, &original_code, vm_api)?
+        };
 
         // Build Package structure
         let mut definitions = index_map_new();

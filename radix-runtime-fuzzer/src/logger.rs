@@ -1,8 +1,9 @@
+use core::panic;
 use std::{fs::OpenOptions, io::Write};
 use transaction::{model::{ExecutionContext, InstructionV1}, prelude::{node_modules::auth::AuthAddresses, Executable}};
 use radix_engine_common::prelude::*;
 
-use crate::fuzzer::RadixRuntimeFuzzerInput;
+use crate::{fuzzer::RadixRuntimeFuzzerInput, INVOKE_MAGIC_STRING};
 use crate::transaction::RadixRuntimeFuzzerTransaction;
 
 pub struct RadixRuntimeInvokeLogger {
@@ -11,33 +12,57 @@ pub struct RadixRuntimeInvokeLogger {
 }
 
 impl RadixRuntimeInvokeLogger {
-    pub fn new(data : &Vec<u8>) -> Self {
+    pub fn new() -> Self {
         Self {
             instructions: Vec::new(),
             depth: 0,
         }
     }
 
-    pub fn finish(&mut self, data : &Vec<u8>) -> &RadixRuntimeFuzzerInput {
-        self.instructions.push(data.clone());
+    pub fn instructions(&self) -> &RadixRuntimeFuzzerInput {
         &self.instructions
     }
 
-    pub fn runtime_call_start(&mut self, func_name : String, data: Vec<u8>) {
+    pub fn finish(&mut self, data : &Vec<u8>) {
+        self.instructions.push(data.clone());
+    }
+
+    pub fn runtime_call_start(&mut self, data: Vec<u8>) {
         if self.depth == 0 {
             self.instructions.push(data);
         }
         self.depth += 1;
     }
 
-    pub fn invoke_in_invoke_end(&mut self, mut invoke_logger : RadixRuntimeInvokeLogger, data: &Vec<u8>) {
-        // replace last arguments of last instruction with invoke_logger.finish(data)
-        // let arguments = &mut self.instructions.last_mut().unwrap();
-        // arguments.pop();
-        // arguments.push(scrypto_encode(&scrypto_encode(&invoke_logger.finish(data)).unwrap()).unwrap());
+    pub fn invoke_in_invoke_end(&mut self, index: usize) {
+        let raw_instruction = self.instructions.pop().unwrap();
+        let mut instruction: ScryptoValue = scrypto_decode(&raw_instruction).unwrap();
+        match &mut instruction {
+            ScryptoValue::Enum { fields, .. } => {
+                let last_field = fields.last_mut().unwrap();
+                match last_field {
+                    ScryptoValue::Array { .. } => {
+                        *last_field = ScryptoValue::Array {
+                            element_value_kind: ScryptoValueKind::U8,
+                            elements: scrypto_encode(&ScryptoValue::String { value: format!("{}_{}", INVOKE_MAGIC_STRING, index) })
+                                .unwrap().into_iter()
+                                .map(|e| ScryptoValue::U8 { value: e })
+                                .collect(),
+                        }
+                    }
+                    _ => {
+                        panic!("Unexpected instruction type");
+                    }
+                }
+            }
+            _ => {
+                panic!("Unexpected instruction type");
+            }
+        }
+        self.instructions.push(scrypto_encode(&instruction).unwrap());
     }
 
-    pub fn runtime_call_end(&mut self, func_name : String, data: Option<Vec<u8>>) {
+    pub fn runtime_call_end(&mut self, data: Option<Vec<u8>>) {
         self.depth -= 1;
     }
 }
@@ -49,7 +74,7 @@ pub struct RadixRuntimeLogger {
     execution_context: Option<ExecutionContext>,
     instruction_index: usize,
     invoke_loggers: Vec<RadixRuntimeInvokeLogger>,
-    invokes: Vec<RadixRuntimeFuzzerInput>,
+    invoke_index: Vec<usize>,
     tx_id: usize
 }
 
@@ -62,36 +87,59 @@ impl RadixRuntimeLogger {
             execution_context: None,
             instruction_index: 0,
             invoke_loggers: Vec::new(),
-            invokes: Vec::new(),
+            invoke_index: Vec::new(),
             tx_id: 0
         }
+    }
+
+    fn get_file_name(&self) -> String {
+        std::env::var("RADIX_RUNTIME_LOGGER_FILE_NAME").unwrap_or("txs.bin".to_string())
     }
 
     fn write_to_file(&self, data: Vec<u8>) {
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
-            .append(false)
-            .open(format!("tx_{}.bin", self.tx_id))
+            .append(true)
+            .open(self.get_file_name())
             .unwrap();
         file.write_all(&data).unwrap();
+    }
+
+    fn current_invoke_logger(&mut self) -> &mut RadixRuntimeInvokeLogger {
+        &mut self.invoke_loggers[*self.invoke_index.last().unwrap()]
     }
 
     pub fn transaction_execution_start(&mut self, executable: &Executable) {
         self.instructions = manifest_decode::<Vec<InstructionV1>>(&executable.encoded_instructions()).unwrap().clone();
         self.references = executable.references().clone();
-        self.blobs = executable.blobs().clone();
+        self.blobs = index_map_new();
         self.execution_context = Some(executable.context().clone());
         self.instruction_index = 0;
         self.invoke_loggers = Vec::new();
-        self.invokes = Vec::new();
+        self.invoke_index = Vec::new();
+
+        // change blobs to empty, we don't need them
+        for (hash, _) in executable.blobs() {
+            self.blobs.insert(hash.clone(), Vec::new());
+        }
     }
 
     pub fn transaction_execution_end(&mut self, success: bool) {
-        assert!(self.instruction_index == self.instructions.len()); // just in case
+        assert!(!success || self.instruction_index == self.instructions.len()); // just in case
 
         if self.execution_context.as_ref().unwrap().auth_zone_params.initial_proofs == btreeset!(AuthAddresses::system_role()) {
             return; // system transaction
+        }
+
+        if !success {
+            return; // skip failed transactions
+        }
+
+        if self.tx_id == 0 {
+            if std::fs::metadata(self.get_file_name()).is_ok() {
+                std::fs::remove_file(self.get_file_name()).unwrap();
+            }
         }
 
         let data = RadixRuntimeFuzzerTransaction {
@@ -99,7 +147,7 @@ impl RadixRuntimeLogger {
             references: self.references.clone(),
             blobs: self.blobs.clone(),
             execution_context: self.execution_context.clone().unwrap(),
-            invokes: self.invokes.clone(),
+            invokes: self.invoke_loggers.iter().map(|logger| logger.instructions().clone()).collect()
         };
         self.write_to_file(scrypto_encode(&data).unwrap());
         self.tx_id += 1;
@@ -110,36 +158,37 @@ impl RadixRuntimeLogger {
         self.instruction_index += 1;
     }
 
-    pub fn invoke_start(&mut self, data: &Vec<u8>) {       
-        self.invoke_loggers.push(RadixRuntimeInvokeLogger::new(data));
+    pub fn invoke_start(&mut self) {       
+        self.invoke_index.push(self.invoke_loggers.len());
+        self.invoke_loggers.push(RadixRuntimeInvokeLogger::new());
     }
 
     pub fn invoke_end(&mut self, data: &Vec<u8>) {
-        let mut invoke_logger = self.invoke_loggers.pop().unwrap();
-        if self.invoke_loggers.len() > 0 {
-            self.invoke_loggers.last_mut().unwrap().invoke_in_invoke_end(invoke_logger, data);
-        } else {
-            let invoke_instructions = invoke_logger.finish(data);
-            self.invokes.push(invoke_instructions.clone());
+        let index = self.invoke_index.pop().unwrap();
+        let invoke_logger = &mut self.invoke_loggers[index];
+        invoke_logger.finish(data);
+        if self.invoke_index.is_empty() {
             let instruction = &mut self.instructions[self.instruction_index - 1];
             match instruction {
                 InstructionV1::CallFunction { args, .. }
                 | InstructionV1::CallMethod { args, .. } => {
-                    *args = ManifestValue::String { value: "fuzz_invoke".to_string() };
+                    *args = ManifestValue::String { value: format!("{}_{}", INVOKE_MAGIC_STRING, index) };
                 }
                 _ => {
                     panic!("Unexpected instruction type");
                 }
             }
+        } else {
+            self.current_invoke_logger().invoke_in_invoke_end(index);
         }
     }
 
-    pub fn runtime_call_start(&mut self, func_name : String, data: Vec<u8>) {
-        self.invoke_loggers.last_mut().unwrap().runtime_call_start(func_name, data);
+    pub fn runtime_call_start(&mut self, data: Vec<u8>) {
+        self.current_invoke_logger().runtime_call_start(data);
     }
 
-    pub fn runtime_call_end(&mut self, func_name : String, data: Option<Vec<u8>>) {
-        self.invoke_loggers.last_mut().unwrap().runtime_call_end(func_name, data);
+    pub fn runtime_call_end(&mut self, data: Option<Vec<u8>>) {
+        self.current_invoke_logger().runtime_call_end(data);
     }
 }
 

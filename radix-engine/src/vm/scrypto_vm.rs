@@ -56,7 +56,7 @@ impl<I: WasmInstance> VmInvoke for ScryptoVmInstance<I> {
         Y: ClientApi<RuntimeError>,
         V: VmApi,
     {
-        radix_runtime_logger!(invoke_start(args.as_vec_ref()));
+        radix_runtime_logger!(invoke_start());
 
         let rtn = {
             let mut runtime: Box<dyn WasmRuntime> = Box::new(ScryptoRuntime::new(
