@@ -177,8 +177,7 @@ impl<I: VmInvoke> VmInvoke for NativeVmInstance<I> {
         // Note: we can't unwind if we're compiling for no-std. See:
         // https://github.com/rust-lang/rfcs/issues/2810
         {
-            /*
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", not(feature = "radix_runtime_fuzzing")))]
             {
                 match std::panic::catch_unwind(std::panic::AssertUnwindSafe(func)) {
                     Ok(rtn) => rtn,
@@ -200,9 +199,8 @@ impl<I: VmInvoke> VmInvoke for NativeVmInstance<I> {
                     }
                 }
             }
-             */
 
-            //#[cfg(not(feature = "std"))]
+            #[cfg(any(not(feature = "std"), feature = "radix_runtime_fuzzing"))]
             func()
         }
     }

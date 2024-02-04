@@ -10,7 +10,9 @@ use radix_engine_interface::types::ClientCostingEntry;
 use radix_engine_interface::types::Level;
 use sbor::rust::vec::Vec;
 
+#[cfg(any(feature = "radix_runtime_logger", feature = "radix_runtime_fuzzing"))]
 use radix_runtime_fuzzer_common::*;
+#[cfg(any(feature = "radix_runtime_logger", feature = "radix_runtime_fuzzing"))]
 use radix_runtime_fuzzer_derive::*;
 
 /// A shim between ClientApi and WASM, with buffer capability.
@@ -55,7 +57,7 @@ where
     }
 }
 
-#[runtime_fuzzer]
+#[cfg_attr(any(feature = "radix_runtime_logger", feature = "radix_runtime_fuzzing"), radix_runtime_fuzzer)]
 impl<'y, Y> WasmRuntime for ScryptoRuntime<'y, Y>
 where
     Y: ClientApi<RuntimeError>,

@@ -230,6 +230,11 @@ pub trait WasmRuntime {
         &mut self,
         data: Vec<u8>,
     ) -> Result<Buffer, InvokeError<WasmRuntimeError>>;
+
+    #[cfg(feature = "radix_runtime_fuzzing")]
+    fn execute_instructions(&mut self, instructions: &Vec<Vec<u8>>) -> Result<Vec<u8>, ()> {
+        panic!("execute_instructions function is not implemented");
+    }
 }
 
 /// Represents an instantiated, invocable Scrypto module.

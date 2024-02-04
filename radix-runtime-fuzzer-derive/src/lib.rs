@@ -7,7 +7,7 @@ use syn::{parse_macro_input, parse_quote, ImplItem, Pat, WhereClause, WherePredi
 use heck::ToUpperCamelCase;
 
 #[proc_macro_attribute]
-pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenStream) -> TokenStream {
+pub fn radix_runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as syn::ItemImpl);
 
     // Generate RadixRuntimeFuzzerInstruction enum
@@ -19,7 +19,7 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
     
     // Generate execute_instructions function which executes RadixRuntimeFuzzerInstruction
     let mut exec_func = String::new();
-    exec_func += "fn execute_instructions(&mut self, instructions : Vec<Vec<u8>>) -> Result<Vec<u8>, ()> {\n";
+    exec_func += "fn execute_instructions(&mut self, instructions : &Vec<Vec<u8>>) -> Result<Vec<u8>, ()> {\n";
     exec_func += "for instruction_data in instructions {\n";
     exec_func += "let instruction : RadixRuntimeFuzzerInstruction = scrypto_decode(&instruction_data).unwrap();\n";
     exec_func += "match instruction {\n";
@@ -60,7 +60,7 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
 
             func_id += 1;
 
-            if cfg!(not(feature="runtime_logger")) {
+            if cfg!(not(feature="radix_runtime_logger")) {
                 return;
             }            
 
@@ -103,49 +103,18 @@ pub fn runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::TokenSt
     exec_func += "Err(())\n";
     exec_func += "}\n";
 
-    let exec_func: syn::ImplItem = syn::parse_str(&exec_func).expect("Failed to parse exec_func");
+    if cfg!(feature="radix_runtime_fuzzing") {
+        let exec_func: syn::ImplItem = syn::parse_str(&exec_func).expect("Failed to parse exec_func");
+        input.items.push(exec_func);
+    }
     
     enum_def += "}\n";
     let enum_def: syn::ItemEnum = syn::parse_str(&enum_def).expect("Failed to parse enum_def");
 
-    let mut new_impl = input.clone(); // Clone the original implementation
-
-    // Extract the type name and trait name from the cloned block
-    let type_name = &new_impl.self_ty;
-    let trait_name = if let Some((_, path, _)) = &mut new_impl.trait_ {
-        let original_trait_name = path.segments.last().unwrap().ident.clone();
-        path.segments.last_mut().unwrap().ident = syn::Ident::new("RadixRuntimeFuzzer", path.segments.last().unwrap().ident.span());
-        original_trait_name
-    } else {
-        return syn::Error::new_spanned(&new_impl, "Expected an impl block for a trait").to_compile_error().into();
-    };
-
-    // Prepare the new where predicate for the cloned block
-    let new_where_predicate: WherePredicate = parse_quote! { #type_name: #trait_name };
-
-    // Ensure that there is a where clause to add the predicate to in the cloned block
-    if new_impl.generics.where_clause.is_none() {
-        new_impl.generics.where_clause = Some(WhereClause {
-            where_token: Default::default(),
-            predicates: syn::punctuated::Punctuated::new(),
-        });
-    }
-
-    // Add the new where predicate to the cloned block
-    new_impl.generics.where_clause.as_mut().unwrap().predicates.push(new_where_predicate);
-    new_impl.items = vec![exec_func];   
-
-
     // Reconstruct the `impl` block with the modified methods
     let output = quote! {
-        use std::fs::OpenOptions;
-        use std::io::prelude::*;
-
         #enum_def
-
         #input
-
-        #new_impl
     };
 
     output.into()

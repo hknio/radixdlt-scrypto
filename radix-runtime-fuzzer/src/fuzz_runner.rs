@@ -7,7 +7,7 @@ use radix_runtime_fuzzer_common::RadixRuntimeFuzzerTransaction;
 use radix_engine::transaction::{CostingParameters, ExecutionConfig};
 use radix_engine_common::prelude::*;
 use scrypto_test::runner::{TestRunner, TestRunnerBuilder, TestRunnerSnapshot};
-
+use radix_engine::vm::wasm::FuzzerEngine;
 pub struct FuzzRunner {
     snapshot: TestRunnerSnapshot,
     test_runner: TestRunner<NoExtension, InMemorySubstateDatabase>,
@@ -35,7 +35,7 @@ impl FuzzRunner {
     }
 
     pub fn execute(&mut self, mut tx: RadixRuntimeFuzzerTransaction) -> TransactionReceiptV1 {
-        tx.set_global_invokes();
+        FuzzerEngine::set_invokes(tx.invokes.clone());
         self.test_runner
             .execute_transaction(
                 tx.get_executable(),

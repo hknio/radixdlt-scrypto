@@ -35,6 +35,7 @@ use radix_engine_interface::blueprints::transaction_processor::InstructionOutput
 use radix_engine_store_interface::{db_key_mapper::SpreadPrefixKeyMapper, interface::*};
 use transaction::model::*;
 
+#[cfg(feature = "radix_runtime_logger")]
 use radix_runtime_fuzzer_common::*;
 
 /// Protocol-defined costing parameters
@@ -1245,14 +1246,19 @@ pub fn execute_transaction_with_system<
     transaction: &Executable,
     init: T::Init,
 ) -> TransactionReceipt {
+    #[cfg(feature = "radix_runtime_logger")]
     radix_runtime_logger!(transaction_execution_start(&transaction));
+
     let result = TransactionExecutor::new(substate_db, vm).execute::<T>(
         transaction,
         costing_parameters,
         execution_config,
         init,
     );
+
+    #[cfg(feature = "radix_runtime_logger")]
     radix_runtime_logger!(transaction_execution_end(result.is_commit_success()));
+
     result
 }
 

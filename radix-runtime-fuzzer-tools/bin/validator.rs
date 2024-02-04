@@ -1,7 +1,7 @@
 use std::io::Read;
 
+use radix_runtime_fuzzer::FuzzRunner;
 use radix_runtime_fuzzer_common::RadixRuntimeFuzzerTransaction;
-use radix_runtime_fuzzer_tools::FuzzRunner;
 
 fn main() {
     let file_name = std::env::args().nth(1).unwrap_or("txs.bin".to_string());

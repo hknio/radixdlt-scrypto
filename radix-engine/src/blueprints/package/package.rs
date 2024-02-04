@@ -1157,8 +1157,8 @@ impl PackageNativePackage {
             .map_err(|e| RuntimeError::ApplicationError(ApplicationError::PackageError(e)))?;
 
         // Validate VM specific properties
-        let instrumented_code = if cfg!(feature="radix_engine_fuzzing") {
-            Some(original_code.clone())
+        let instrumented_code = if cfg!(feature="radix_runtime_fuzzing") {
+            Some(original_code.clone()) // VmPackageValidation::validate is disabled when fuzzing
         } else {
             VmPackageValidation::validate(&definition, vm_type, &original_code, vm_api)?
         };

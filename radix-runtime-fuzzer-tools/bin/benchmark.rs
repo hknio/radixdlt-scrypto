@@ -1,7 +1,7 @@
 use radix_runtime_fuzzer_common::RadixRuntimeFuzzerTransaction;
 use std::io::Read;
 use std::time::Instant;
-use radix_runtime_fuzzer_tools::FuzzRunner;
+use radix_runtime_fuzzer::FuzzRunner;
 
 fn main() {
     // read file from argument or use default txs.bin

@@ -1133,8 +1133,6 @@ dependencies = [
  "radix-engine-interface",
  "radix-engine-macros",
  "radix-engine-store-interface",
- "radix-runtime-fuzzer-common",
- "radix-runtime-fuzzer-derive",
  "resources-tracker-macro",
  "sbor",
  "serde_json",
@@ -1259,31 +1257,6 @@ dependencies = [
  "rocksdb",
  "sbor",
  "utils",
-]
-
-[[package]]
-name = "radix-runtime-fuzzer-common"
-version = "0.1.0"
-dependencies = [
- "hex",
- "once_cell",
- "proc-macro2",
- "quote",
- "radix-engine-common",
- "sbor",
- "syn 1.0.93",
- "transaction",
-]
-
-[[package]]
-name = "radix-runtime-fuzzer-derive"
-version = "0.1.0"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "radix-runtime-fuzzer-common",
- "syn 1.0.93",
 ]
 
 [[package]]

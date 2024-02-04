@@ -6,16 +6,10 @@ use crate::system::system_callback_api::SystemCallbackObject;
 use crate::system::system_substates::KeyValueEntrySubstate;
 use crate::track::BootStore;
 use crate::types::*;
-use crate::vm::wasm::{ScryptoV1WasmValidator, WasmEngine};
+use crate::vm::wasm::{ScryptoV1WasmValidator, WasmEngine, SCRYPTO_V1_LATEST_MINOR_VERSION};
 use crate::vm::{NativeVm, NativeVmExtension, ScryptoVm};
 use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::ClientApi;
-
-#[cfg(feature="radix_engine_fuzzing")]
-use radix_runtime_fuzzer_common::{INVOKE_MAGIC_STRING, RADIX_RUNTIME_FUZZING_INVOKES, RadixRuntimeFuzzer};
-
-use super::wasm::{WasmRuntime, WasmRuntimeError, SCRYPTO_V1_LATEST_MINOR_VERSION};
-use super::wasm_runtime::ScryptoRuntime;
 
 pub const BOOT_LOADER_VM_SUBSTATE_FIELD_KEY: FieldKey = 2u8;
 
@@ -173,49 +167,6 @@ impl<'g, W: WasmEngine + 'g, E: NativeVmExtension> SystemCallbackObject for Vm<'
                 output
             }
             VmType::ScryptoV1 => {
-                #[cfg(feature="radix_engine_fuzzing")]
-                {
-                    let invoke_string = scrypto_decode::<String>(input.as_slice())
-                        .map_err(|e| RuntimeError::SystemUpstreamError(SystemUpstreamError::InputDecodeError(e)))?;
-                    let invoke_id_string = invoke_string.replace(&format!("{}_", INVOKE_MAGIC_STRING), "");
-                    let invoke_id = invoke_id_string.parse::<usize>()
-                        .map_err(|_| RuntimeError::SystemUpstreamError(SystemUpstreamError::FnNotFound("Invalid invoke number".to_string())))?;
-                    let fuzz_data = RADIX_RUNTIME_FUZZING_INVOKES.lock().unwrap().get(invoke_id)
-                        .ok_or(RuntimeError::SystemUpstreamError(SystemUpstreamError::FnNotFound("Invoke not found".to_string())))?.clone();
-                    {
-                        // we need to open and close one substate to have correct handle id
-                        let handle = api.kernel_open_substate_with_default(
-                            address.as_node_id(),
-                            MAIN_BASE_PARTITION
-                                .at_offset(PACKAGE_INSTRUMENTED_CODE_PARTITION_OFFSET)
-                                .unwrap(),
-                            &SubstateKey::Map(scrypto_encode(&export.code_hash).unwrap()),
-                            LockFlags::read_only(),
-                            Some(|| {
-                                let kv_entry = KeyValueEntrySubstate::<()>::default();
-                                IndexedScryptoValue::from_typed(&kv_entry)
-                            }),
-                            SystemLockData::default(),
-                        )?;
-                        api.kernel_close_substate(handle)?;
-                    };
-
-                    let mut runtime = ScryptoRuntime::new(
-                        api,
-                        address.clone(),
-                        export.export_name,
-                    );
-                    runtime
-                        .allocate_buffer(Vec::new())
-                        .expect("Failed to allocate buffer");                    
-                    let rtn = runtime.execute_instructions(fuzz_data).map_err(|_| {
-                        RuntimeError::VmError(VmError::Wasm(WasmRuntimeError::ExecutionError("Fuzzing error".to_string())))
-                    })?;
-                    IndexedScryptoValue::from_vec(rtn).map_err(|e| {
-                        RuntimeError::SystemUpstreamError(SystemUpstreamError::OutputDecodeError(e))
-                    })?
-                }
-                #[cfg(not(feature="radix_engine_fuzzing"))]
                 {
                     let instrumented_code = {
                         let handle = api.kernel_open_substate_with_default(

@@ -11,7 +11,7 @@ def main():
     original_dir = os.getcwd()
 
     # Step 1
-    os.chdir("radix-runtime-fuzzer")
+    os.chdir("radix-runtime-fuzzer-tools")
     run_command("cargo build --release --bin validator")
     os.chdir(original_dir)
 
@@ -20,16 +20,18 @@ def main():
 
     # Step 3
     os.chdir("radix-engine-tests")
-    test_list_output = run_command("cargo test --features runtime_logger -- --list")
+    test_list_output = run_command("cargo test --features radix_runtime_logger -- --list")
     test_names = [line.split(': test')[0] for line in test_list_output.splitlines() if line.endswith(": test")]
 
     # Step 4
     for test_name in test_names:
         sanitized_test_name = re.sub('[^a-z]', '_', test_name.lower())
         txs_bin_name = f"{raw_txs_path}/{sanitized_test_name}.bin"
+        if not os.path.exists(txs_bin_name):
+            continue
         os.environ["RADIX_RUNTIME_LOGGER_FILE_NAME"] = txs_bin_name
         try:
-            run_command(f"cargo test --features runtime_logger -- {test_name}")
+            run_command(f"cargo test --features radix_runtime_logger -- {test_name}")
         except subprocess.CalledProcessError:
             if os.path.exists(txs_bin_name):
                 os.remove(txs_bin_name)

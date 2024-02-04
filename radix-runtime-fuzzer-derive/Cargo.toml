@@ -14,4 +14,5 @@ quote = { version = "1.0.18" }
 heck = "0.4.1"
 
 [features]
-runtime_logger = ["radix-runtime-fuzzer-common/runtime_logger"]
+radix_runtime_logger = ["radix-runtime-fuzzer-common/radix_runtime_logger"]
+radix_runtime_fuzzing = ["radix-runtime-fuzzer-common/radix_runtime_fuzzing"]

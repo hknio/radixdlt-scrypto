@@ -34,7 +34,6 @@ fn main() {
     let txs_vec_data = scrypto_encode(&txs_vec).unwrap();
     std::fs::write(format!("{}/txs.bin", output_dir), txs_vec_data).unwrap();
 
-
     for (tx_id, txs) in txs_vec.iter().enumerate() {
         let mut file = OpenOptions::new()
             .write(true)
@@ -43,9 +42,10 @@ fn main() {
             .open(format!("{}/{}.bin", output_dir, tx_id))
             .unwrap();
         file.write_all(&[tx_id as u8]).unwrap();
-        for tx in txs {
-            file.write_all(&scrypto_encode(&tx.instructions).unwrap()).unwrap();
-            file.write_all(&scrypto_encode(&tx.invokes).unwrap()).unwrap();
+        for invoke in &txs[0].invokes {
+            for instruction_data in invoke {
+                file.write_all(&instruction_data).unwrap();
+            }
         }
     }
 }

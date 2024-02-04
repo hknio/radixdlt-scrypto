@@ -9,6 +9,11 @@ mod wasmer;
 mod wasmi;
 mod weights;
 
+#[cfg(feature = "radix_runtime_fuzzing")]
+mod fuzzer;
+#[cfg(feature = "radix_runtime_fuzzing")]
+pub use self::fuzzer::*;
+
 #[cfg(feature = "wasmer")]
 pub use self::wasmer::*;
 pub use self::wasmi::*;
@@ -25,7 +30,12 @@ pub type DefaultWasmEngine = WasmerEngine;
 #[cfg(feature = "wasmer")]
 pub type DefaultWasmInstance = WasmerInstance;
 
-#[cfg(not(feature = "wasmer"))]
+#[cfg(feature = "radix_runtime_fuzzing")]
+pub type DefaultWasmEngine = FuzzerEngine;
+#[cfg(feature = "radix_runtime_fuzzing")]
+pub type DefaultWasmInstance = FuzzerInstance;
+
+#[cfg(not(any(feature = "wasmer", feature = "radix_runtime_fuzzing")))]
 pub type DefaultWasmEngine = WasmiEngine;
-#[cfg(not(feature = "wasmer"))]
+#[cfg(not(any(feature = "wasmer", feature = "radix_runtime_fuzzing")))]
 pub type DefaultWasmInstance = WasmiInstance;

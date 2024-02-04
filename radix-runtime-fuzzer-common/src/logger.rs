@@ -3,11 +3,12 @@ use std::{fs::OpenOptions, io::Write};
 use transaction::{model::{ExecutionContext, InstructionV1}, prelude::{node_modules::auth::AuthAddresses, Executable}};
 use radix_engine_common::prelude::*;
 
-use crate::{fuzzer::RadixRuntimeFuzzerInput, INVOKE_MAGIC_STRING};
+use crate::fuzzer::RadixRuntimeFuzzerInput;
 use crate::transaction::RadixRuntimeFuzzerTransaction;
 
 pub struct RadixRuntimeInvokeLogger {
     instructions: Vec<Vec<u8>>,
+    first_instruction: bool,
     depth: usize,
 }
 
@@ -15,6 +16,7 @@ impl RadixRuntimeInvokeLogger {
     pub fn new() -> Self {
         Self {
             instructions: Vec::new(),
+            first_instruction: true,
             depth: 0,
         }
     }
@@ -29,37 +31,13 @@ impl RadixRuntimeInvokeLogger {
 
     pub fn runtime_call_start(&mut self, data: Vec<u8>) {
         if self.depth == 0 {
-            self.instructions.push(data);
+            if self.first_instruction {
+                self.first_instruction = false; // first instruction is allocate_buffer with args, skip it
+            } else {
+                self.instructions.push(data);
+            }
         }
         self.depth += 1;
-    }
-
-    pub fn invoke_in_invoke_end(&mut self, index: usize) {
-        let raw_instruction = self.instructions.pop().unwrap();
-        let mut instruction: ScryptoValue = scrypto_decode(&raw_instruction).unwrap();
-        match &mut instruction {
-            ScryptoValue::Enum { fields, .. } => {
-                let last_field = fields.last_mut().unwrap();
-                match last_field {
-                    ScryptoValue::Array { .. } => {
-                        *last_field = ScryptoValue::Array {
-                            element_value_kind: ScryptoValueKind::U8,
-                            elements: scrypto_encode(&ScryptoValue::String { value: format!("{}_{}", INVOKE_MAGIC_STRING, index) })
-                                .unwrap().into_iter()
-                                .map(|e| ScryptoValue::U8 { value: e })
-                                .collect(),
-                        }
-                    }
-                    _ => {
-                        panic!("Unexpected instruction type");
-                    }
-                }
-            }
-            _ => {
-                panic!("Unexpected instruction type");
-            }
-        }
-        self.instructions.push(scrypto_encode(&instruction).unwrap());
     }
 
     pub fn runtime_call_end(&mut self, data: Option<Vec<u8>>) {
@@ -75,7 +53,8 @@ pub struct RadixRuntimeLogger {
     instruction_index: usize,
     invoke_loggers: Vec<RadixRuntimeInvokeLogger>,
     invoke_index: Vec<usize>,
-    tx_id: usize
+    tx_id: usize,
+    write: bool
 }
 
 impl RadixRuntimeLogger {
@@ -88,7 +67,8 @@ impl RadixRuntimeLogger {
             instruction_index: 0,
             invoke_loggers: Vec::new(),
             invoke_index: Vec::new(),
-            tx_id: 0
+            tx_id: 0,
+            write: true
         }
     }
 
@@ -97,6 +77,9 @@ impl RadixRuntimeLogger {
     }
 
     fn write_to_file(&self, data: Vec<u8>) {
+        if !self.write {
+            return;
+        }
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -108,6 +91,10 @@ impl RadixRuntimeLogger {
 
     fn current_invoke_logger(&mut self) -> &mut RadixRuntimeInvokeLogger {
         &mut self.invoke_loggers[*self.invoke_index.last().unwrap()]
+    }
+
+    pub fn disable_write_to_file(&mut self) {
+        self.write = false;
     }
 
     pub fn transaction_execution_start(&mut self, executable: &Executable) {
@@ -126,17 +113,16 @@ impl RadixRuntimeLogger {
     }
 
     pub fn transaction_execution_end(&mut self, success: bool) {
-        assert!(!success || self.instruction_index == self.instructions.len()); // just in case
-
+        assert!(!success || self.instruction_index == self.instructions.len());
         if self.execution_context.as_ref().unwrap().auth_zone_params.initial_proofs == btreeset!(AuthAddresses::system_role()) {
-            return; // system transaction
+            return; // skip system transaction
         }
-
         if !success {
             return; // skip failed transactions
         }
 
         if self.tx_id == 0 {
+            // remove file with transactiosn if it already exists
             if std::fs::metadata(self.get_file_name()).is_ok() {
                 std::fs::remove_file(self.get_file_name()).unwrap();
             }
@@ -158,7 +144,7 @@ impl RadixRuntimeLogger {
         self.instruction_index += 1;
     }
 
-    pub fn invoke_start(&mut self) {       
+    pub fn invoke_start(&mut self, data: &Vec<u8>) {       
         self.invoke_index.push(self.invoke_loggers.len());
         self.invoke_loggers.push(RadixRuntimeInvokeLogger::new());
     }
@@ -167,20 +153,6 @@ impl RadixRuntimeLogger {
         let index = self.invoke_index.pop().unwrap();
         let invoke_logger = &mut self.invoke_loggers[index];
         invoke_logger.finish(data);
-        if self.invoke_index.is_empty() {
-            let instruction = &mut self.instructions[self.instruction_index - 1];
-            match instruction {
-                InstructionV1::CallFunction { args, .. }
-                | InstructionV1::CallMethod { args, .. } => {
-                    *args = ManifestValue::String { value: format!("{}_{}", INVOKE_MAGIC_STRING, index) };
-                }
-                _ => {
-                    panic!("Unexpected instruction type");
-                }
-            }
-        } else {
-            self.current_invoke_logger().invoke_in_invoke_end(index);
-        }
     }
 
     pub fn runtime_call_start(&mut self, data: Vec<u8>) {
@@ -192,19 +164,13 @@ impl RadixRuntimeLogger {
     }
 }
 
-#[cfg(feature="runtime_logger")] 
+#[cfg(feature="radix_runtime_logger")] 
 pub static RADIX_RUNTIME_LOGGER: once_cell::sync::Lazy<std::sync::Mutex<RadixRuntimeLogger>> = once_cell::sync::Lazy::new(|| std::sync::Mutex::new(RadixRuntimeLogger::new()));
 
-#[cfg(feature="runtime_logger")]
+#[cfg(feature="radix_runtime_logger")]
 #[macro_export]
 macro_rules! radix_runtime_logger {
     ($($arg:tt)*) => {
         $crate::RADIX_RUNTIME_LOGGER.lock().unwrap().$($arg)*
     };
-}
-
-#[cfg(not(feature="runtime_logger"))]
-#[macro_export]
-macro_rules! radix_runtime_logger {
-    ($($arg:tt)*) => {};
 }

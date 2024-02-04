@@ -11,7 +11,6 @@ use radix_engine_interface::api::field_api::LockFlags;
 use radix_engine_interface::api::{CollectionIndex, FieldValue, KVEntry};
 use radix_engine_interface::blueprints::package::*;
 use radix_engine_interface::schema::KeyValueStoreGenericSubstitutions;
-use radix_runtime_fuzzer_common::INVOKE_MAGIC_STRING;
 use sbor::rust::vec::Vec;
 
 /// Metadata for schema validation to help with location of certain schemas
@@ -239,14 +238,6 @@ where
     ) -> Result<(), RuntimeError> {
         let (schema, index, allow_ownership, allow_non_global_ref, schema_origin) =
             self.get_payload_schema(target, &payload_identifier)?;
-
-        // if payload is from fuzzer than don't validate it
-        #[cfg(feature = "radix_engine_fuzzing")]
-        if let Ok(instruction) = scrypto_decode::<String>(payload) {
-            if instruction.starts_with(&INVOKE_MAGIC_STRING) {
-                return Ok(());
-            }
-        }
 
         self.validate_payload(
             payload,

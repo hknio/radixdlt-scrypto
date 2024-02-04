@@ -8,7 +8,7 @@ use radix_runtime_fuzzer_common::{RadixRuntimeFuzzerInput, RadixRuntimeFuzzerTra
 
 use radix_engine::{system::bootstrap::Bootstrapper, transaction::{execute_and_commit_transaction, CostingParameters, ExecutionConfig}, vm::{wasm::{DefaultWasmEngine, WasmValidatorConfigV1}, DefaultNativeVm, ScryptoVm, Vm}};
 use scrypto_test::runner::{TestRunner, TestRunnerBuilder, TestRunnerSnapshot};
-use radix_engine_common::prelude::*;
+use radix_engine_common::{data::scrypto, prelude::*};
 
 use radix_runtime_fuzzer::FuzzRunner;
 use transaction::model::InstructionV1;
@@ -41,49 +41,31 @@ impl Fuzzer {
         }
     }
 
-    fn validate_invokes(&self, tx: &RadixRuntimeFuzzerTransaction) -> bool {
-        for invoke in &tx.invokes {
-            for instruction_data in invoke {
-                if scrypto_decode::<RadixRuntimeFuzzerInstruction>(&instruction_data).is_err() {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-
-    fn validate_instructions(&self, tx: &RadixRuntimeFuzzerTransaction) -> bool {
-        manifest_decode::<Vec<InstructionV1>>(&tx.instructions).is_ok()
-    }
-
     fn run(&mut self, data: &[u8]) -> Result<bool, ()> {
         if data.len() < 4 {
             return Err(());
         }
 
-        let tx_id = data[0];
-        if tx_id as usize >= self.txs.len() {
-            return Err(());
-        }
+        let tx_id = data[0] % self.txs.len() as u8;
 
         let mut txs = self.txs[tx_id as usize].clone();
         let mut tx_id = 0;
 
         let mut decoder = ScryptoDecoder::new(&data[1..], SCRYPTO_SBOR_V1_MAX_DEPTH);
+        let mut invokes : Vec<RadixRuntimeFuzzerInput> = Vec::new();
+        invokes.push(Vec::new());
         while decoder.remaining_bytes() > 0 && tx_id < txs.len() {
-            decoder.read_and_check_payload_prefix(SCRYPTO_SBOR_V1_PAYLOAD_PREFIX).map_err(|_| ())?;
-            let instructions = decoder.decode::<Vec<u8>>().map_err(|_| ())?;
-            decoder.read_and_check_payload_prefix(SCRYPTO_SBOR_V1_PAYLOAD_PREFIX).map_err(|_| ())?;
-            let invokes = decoder.decode::<Vec<RadixRuntimeFuzzerInput>>().map_err(|_| ())?;
-            txs[tx_id].instructions = instructions;
-            txs[tx_id].invokes = invokes;
-            tx_id += 1;
-        }
-
-        for tx in &txs {
-            if !self.validate_invokes(tx) || !self.validate_instructions(tx) {
-                return Err(());
-            }
+            let _ = decoder.read_and_check_payload_prefix(SCRYPTO_SBOR_V1_PAYLOAD_PREFIX).is_ok();
+            let instruction = decoder.decode::<RadixRuntimeFuzzerInstruction>().map_err(|_| ())?;
+            invokes.last_mut().unwrap().push(scrypto_encode(&instruction).unwrap());
+            if let RadixRuntimeFuzzerInstruction::Return(_) = instruction {
+                if txs[tx_id].invokes.len() == invokes.len() {
+                    txs[tx_id].invokes = invokes.clone();
+                    invokes.clear();
+                    tx_id += 1;
+                }
+                invokes.push(Vec::new());
+            }            
         }
 
         let mut is_ok = txs.len() > 0;
@@ -109,7 +91,7 @@ fuzz_target!(|data: &[u8]| {
     unsafe {
         pub static mut FUZZER: Lazy<Fuzzer> = Lazy::new(|| Fuzzer::new());
         if let Ok(status) = FUZZER.run(data) {
-            //println!("Success");
+            //println!("Status: {}", status);
         }
     }
 });
