@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote, ImplItem, Pat, WhereClause, WherePredicate};
+use syn::{parse_macro_input, ImplItem, Pat};
 use heck::ToUpperCamelCase;
 
 #[proc_macro_attribute]
@@ -12,7 +12,7 @@ pub fn radix_runtime_fuzzer(_attrs: proc_macro::TokenStream, item: proc_macro::T
 
     // Generate RadixRuntimeFuzzerInstruction enum
     let mut enum_def = String::new();
-    enum_def += "#[derive(Debug, Clone, PartialEq, Eq, ScryptoSbor)]\n";
+    enum_def += "#[derive(Debug, Clone, PartialEq, Eq, ScryptoSbor, ManifestSbor)]\n";
     enum_def += "pub enum RadixRuntimeFuzzerInstruction {\n";
     enum_def += "#[sbor(discriminator(0))]";
     enum_def += "Return(Vec<u8>),\n";

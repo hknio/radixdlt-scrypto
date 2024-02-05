@@ -21,6 +21,7 @@ radix-engine-store-interface = { path = "../radix-engine-store-interface" }
 radix-engine-stores = { path = "../radix-engine-stores" }
 scrypto-test = { path = "../scrypto-test" }
 libfuzzer-sys = { version = "0.4", optional = true }
+honggfuzz = { version = "0.5", optional = true }
 
 [[bin]]
 name = "fuzzer"
@@ -28,4 +29,7 @@ path = "bin/fuzzer.rs"
 bench = false
 
 [features]
-default = ["dep:libfuzzer-sys"]
+default = ["libfuzzer"]
+
+libfuzzer = ["dep:libfuzzer-sys"]
+honggfuzz = ["dep:honggfuzz"]

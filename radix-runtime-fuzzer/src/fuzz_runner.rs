@@ -26,8 +26,20 @@ impl FuzzRunner {
         }
     }
 
+    pub fn create_snapshot(&self) -> TestRunnerSnapshot {
+        self.test_runner.create_snapshot()
+    }
+
     pub fn update_snapshot(&mut self) {
         self.snapshot = self.test_runner.create_snapshot();
+    }
+
+    pub fn save_snapshot(&mut self) {
+        let snapshot = self.create_snapshot();
+        let snapshot_data = scrypto_encode(&snapshot).unwrap();
+        let snapshot_hash = hash(&snapshot_data);
+        std::fs::write(&format!("snapshot_{}.bin", snapshot_hash.to_string()), snapshot_data).unwrap();
+        println!("Snapshot saved: snapshot_{}.bin", snapshot_hash.to_string());
     }
 
     pub fn reset(&mut self) {

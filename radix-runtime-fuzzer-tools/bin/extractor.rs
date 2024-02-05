@@ -1,15 +1,24 @@
 use radix_engine::types::scrypto_decode;
-use radix_runtime_fuzzer_common::{RadixRuntimeFuzzerTransaction};
+use radix_runtime_fuzzer_common::RadixRuntimeFuzzerTransaction;
 
-use radix_engine::{system::bootstrap::Bootstrapper, transaction::{execute_and_commit_transaction, CostingParameters, ExecutionConfig}, vm::{wasm::{DefaultWasmEngine, WasmValidatorConfigV1}, DefaultNativeVm, ScryptoVm, Vm}};
-use scrypto_test::runner::TestRunnerBuilder;
-use radix_engine_common::{data::scrypto, prelude::*};
-use std::{fs::OpenOptions, io::{Read, Write}, time::Instant};
+use radix_engine_common::prelude::*;
+use std::{fs::OpenOptions, io::Write};
 use radix_engine::vm::wasm_runtime::RadixRuntimeFuzzerInstruction;
+use std::env;
 
+// converts Vec<RadixRuntimeFuzzerTransaction> to seed corpus for fuzzer
 fn main() {
-    let input_dir = "/workspaces/develop/radix-runtime-fuzzer-test-cases/raw";
-    let output_dir = "/workspaces/develop/radix-runtime-fuzzer-test-cases/extracted";
+    let args: Vec<String> = env::args().collect();
+    let input_dir = if args.len() > 1 {
+        &args[1]
+    } else {
+        "radix-runtime-fuzzer-test-cases/raw"
+    };
+    let output_dir = if args.len() > 2 {
+        &args[2]
+    } else {
+        "radix-runtime-fuzzer-test-cases/extracted"
+    };
 
     // read all files in input_dir
     let entries = std::fs::read_dir(input_dir).unwrap();
@@ -22,11 +31,13 @@ fn main() {
         let file_data = std::fs::read(file_name).unwrap();
         let txs = RadixRuntimeFuzzerTransaction::vec_from_slice(&file_data).unwrap();
         // check if any txs has invokes non empty
-        let mut invokes = 0;
+        let mut invoke_instructions = 0;
         for tx in &txs {
-            invokes += tx.invokes.len();
+            for invoke in &tx.invokes {
+                invoke_instructions += invoke.len();
+            }
         }
-        if invokes > 10 {
+        if invoke_instructions > txs.len() * 19 {
             txs_vec.push(txs);
         }
     }
@@ -42,11 +53,17 @@ fn main() {
             .open(format!("{}/{}.bin", output_dir, tx_id))
             .unwrap();
         file.write_all(&[tx_id as u8]).unwrap();
-        for invoke in &txs[0].invokes {
-            for instruction_data in invoke {
-                file.write_all(&instruction_data).unwrap();
+        let mut buf : Vec<u8> = Vec::with_capacity(1024 * 16);
+        let mut encoder = ManifestEncoder::new(&mut buf, SCRYPTO_SBOR_V1_MAX_DEPTH);
+        for tx in txs {
+            for invoke in &tx.invokes {
+                for instruction_data in invoke {
+                    let instruction : RadixRuntimeFuzzerInstruction = scrypto_decode(&instruction_data).unwrap();
+                    encoder.encode(&instruction).unwrap();
+                }    
             }
         }
+        file.write_all(&buf).unwrap();
     }
 }
 

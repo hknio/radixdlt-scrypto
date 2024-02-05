@@ -1,6 +1,10 @@
 #![no_main]
 
+#[cfg(feature="libfuzzer")]
 use libfuzzer_sys::fuzz_target;
+#[cfg(feature="honggfuzz")]
+use honggfuzz::fuzz;
+
 use once_cell::sync::Lazy;
 use radix_engine::{types::scrypto_decode, vm::{wasm_runtime::RadixRuntimeFuzzerInstruction, NoExtension}};
 use radix_engine_stores::memory_db::InMemorySubstateDatabase;
@@ -51,11 +55,10 @@ impl Fuzzer {
         let mut txs = self.txs[tx_id as usize].clone();
         let mut tx_id = 0;
 
-        let mut decoder = ScryptoDecoder::new(&data[1..], SCRYPTO_SBOR_V1_MAX_DEPTH);
+        let mut decoder = ManifestDecoder::new(&data[1..], SCRYPTO_SBOR_V1_MAX_DEPTH);
         let mut invokes : Vec<RadixRuntimeFuzzerInput> = Vec::new();
         invokes.push(Vec::new());
         while decoder.remaining_bytes() > 0 && tx_id < txs.len() {
-            let _ = decoder.read_and_check_payload_prefix(SCRYPTO_SBOR_V1_PAYLOAD_PREFIX).is_ok();
             let instruction = decoder.decode::<RadixRuntimeFuzzerInstruction>().map_err(|_| ())?;
             invokes.last_mut().unwrap().push(scrypto_encode(&instruction).unwrap());
             if let RadixRuntimeFuzzerInstruction::Return(_) = instruction {
@@ -76,23 +79,27 @@ impl Fuzzer {
                 self.executed_txs += 1;
             }
         }
-        /*
-        if self.executed_txs > 100 {
-            self.runner.reset();
-            self.executed_txs = 0;
-        }
-         */
+        self.runner.reset();
         Ok(is_ok)
     }
 }
 
 
+#[cfg(feature="libfuzzer")]
 fuzz_target!(|data: &[u8]| {
     unsafe {
         pub static mut FUZZER: Lazy<Fuzzer> = Lazy::new(|| Fuzzer::new());
-        if let Ok(status) = FUZZER.run(data) {
-            //println!("Status: {}", status);
-        }
+        FUZZER.run(data);
     }
 });
+
+#[cfg(feature="honggfuzz")]
+fn main() {
+    let mut fuzzer = Fuzzer::new();
+    loop {
+        fuzz!(|data: &[u8]| {
+            fuzzer.run(data);
+        });
+    }
+}
 

@@ -1,4 +1,4 @@
-use transaction::{model::{ExecutionContext, InstructionV1}, prelude::{node_modules::auth::AuthAddresses, Executable}};
+use transaction::{model::ExecutionContext, prelude::Executable};
 use radix_engine_common::prelude::*;
 
 use crate::fuzzer::RadixRuntimeFuzzerInput;
