@@ -1,5 +1,8 @@
+use radix_engine_derive::ScryptoSbor;
+
 pub type BufferId = u32;
 
+#[derive(Debug, ScryptoSbor)]
 #[repr(C)]
 pub struct Buffer(pub u64);
 

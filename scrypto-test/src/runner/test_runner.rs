@@ -210,6 +210,7 @@ pub struct TestRunnerBuilder<E, D> {
     with_seconds_precision_update: bool,
     with_crypto_utils_update: bool,
     with_pools_v1_1: bool,
+    with_commit: bool
 }
 
 impl TestRunnerBuilder<NoExtension, InMemorySubstateDatabase> {
@@ -223,6 +224,7 @@ impl TestRunnerBuilder<NoExtension, InMemorySubstateDatabase> {
             with_seconds_precision_update: true,
             with_crypto_utils_update: true,
             with_pools_v1_1: true,
+            with_commit: true
         }
     }
 }
@@ -243,6 +245,7 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
             with_seconds_precision_update: self.with_seconds_precision_update,
             with_crypto_utils_update: self.with_crypto_utils_update,
             with_pools_v1_1: self.with_pools_v1_1,
+            with_commit: self.with_commit
         }
     }
 
@@ -269,6 +272,7 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
             with_seconds_precision_update: self.with_seconds_precision_update,
             with_crypto_utils_update: self.with_crypto_utils_update,
             with_pools_v1_1: self.with_pools_v1_1,
+            with_commit: self.with_commit
         }
     }
 
@@ -282,6 +286,7 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
             with_seconds_precision_update: self.with_seconds_precision_update,
             with_crypto_utils_update: self.with_crypto_utils_update,
             with_pools_v1_1: self.with_pools_v1_1,
+            with_commit: self.with_commit
         }
     }
 
@@ -297,6 +302,11 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
 
     pub fn without_pools_v1_1(mut self) -> Self {
         self.with_pools_v1_1 = false;
+        self
+    }
+
+    pub fn without_commit(mut self) -> Self {
+        self.with_commit = false;
         self
     }
 
@@ -321,6 +331,7 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
             collected_events: snapshot.collected_events,
             xrd_free_credits_used: snapshot.xrd_free_credits_used,
             skip_receipt_check: snapshot.skip_receipt_check,
+            commit: self.with_commit,
         }
     }
 
@@ -426,6 +437,7 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
             collected_events: events,
             xrd_free_credits_used: false,
             skip_receipt_check: self.skip_receipt_check,
+            commit: self.with_commit
         };
 
         let next_epoch = wrap_up_receipt
@@ -450,6 +462,7 @@ pub struct TestRunner<E: NativeVmExtension, D: TestDatabase> {
     collected_events: Vec<Vec<(EventTypeIdentifier, Vec<u8>)>>,
     xrd_free_credits_used: bool,
     skip_receipt_check: bool,
+    commit: bool
 }
 
 #[cfg(feature = "post_run_db_check")]
@@ -459,7 +472,7 @@ impl<E: NativeVmExtension, D: TestDatabase> Drop for TestRunner<E, D> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, ScryptoSbor)]
 pub struct TestRunnerSnapshot {
     database: InMemorySubstateDatabase,
     next_private_key: u64,
@@ -502,6 +515,14 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunner<E, D> {
 
     pub fn substate_db_mut(&mut self) -> &mut D {
         &mut self.database
+    }
+
+    pub fn disable_commit(&mut self) {
+        self.commit = false;
+    }
+
+    pub fn enable_commit(&mut self) {
+        self.commit = true;
     }
 
     pub fn collected_events(&self) -> &Vec<Vec<(EventTypeIdentifier, Vec<u8>)>> {
@@ -1526,16 +1547,18 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunner<E, D> {
             &executable,
             init,
         );
-        if let TransactionResult::Commit(commit) = &transaction_receipt.result {
-            let database_updates = commit
-                .state_updates
-                .create_database_updates::<SpreadPrefixKeyMapper>();
-            self.database.commit(&database_updates);
-            self.collected_events
-                .push(commit.application_events.clone());
+        if self.commit {
+            if let TransactionResult::Commit(commit) = &transaction_receipt.result {
+                let database_updates = commit
+                    .state_updates
+                    .create_database_updates::<SpreadPrefixKeyMapper>();
+                self.database.commit(&database_updates);
+                self.collected_events
+                    .push(commit.application_events.clone());
 
-            if !self.skip_receipt_check {
-                assert_receipt_substate_changes_can_be_typed(commit);
+                if !self.skip_receipt_check {
+                    assert_receipt_substate_changes_can_be_typed(commit);
+                }
             }
         }
         transaction_receipt

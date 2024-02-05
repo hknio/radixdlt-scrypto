@@ -1,0 +1,5 @@
+corpus
+target-libfuzzer
+target*
+hfuzz*
+crash*

@@ -179,7 +179,7 @@ fn test_to_from_manifest_value() {
     let from: u8 = to_and_from_manifest_value!(v);
     assert_eq!(v, from);
 
-    let mut hash_set = HashSet::new();
+    let mut hash_set = hash_set_new();
     hash_set.insert(vec![0u8, 3u8]);
     let from: HashSet<Vec<u8>> = to_and_from_manifest_value!(hash_set);
     assert_eq!(hash_set, from);

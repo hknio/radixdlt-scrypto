@@ -113,6 +113,8 @@ pub trait Encoder<X: CustomValueKind>: Sized {
         Ok(())
     }
 
+    fn get_buffer(&mut self) -> &mut Vec<u8>;
+
     fn write_byte(&mut self, n: u8) -> Result<(), EncodeError>;
 
     fn write_slice(&mut self, slice: &[u8]) -> Result<(), EncodeError>;
@@ -162,6 +164,11 @@ impl<'a, X: CustomValueKind> Encoder<X> for VecEncoder<'a, X> {
         self.track_stack_depth_decrease()
     }
 
+    #[inline]
+    fn get_buffer(&mut self) -> &mut Vec<u8> {
+        &mut self.buf
+    }
+    
     #[inline]
     fn write_byte(&mut self, n: u8) -> Result<(), EncodeError> {
         self.buf.push(n);

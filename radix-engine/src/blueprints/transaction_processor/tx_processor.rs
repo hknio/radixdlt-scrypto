@@ -22,6 +22,9 @@ use transaction::data::TransformHandler;
 use transaction::model::*;
 use transaction::validation::*;
 
+#[cfg(feature="radix_runtime_logger")]
+use radix_runtime_fuzzer_common::*;
+
 #[derive(Debug, Eq, PartialEq, ScryptoSbor)]
 pub struct TransactionProcessorRunInput {
     pub manifest_encoded_instructions: Vec<u8>,
@@ -138,8 +141,11 @@ impl TransactionProcessorBlueprint {
         let mut processor = TransactionProcessor::new(blobs, global_address_reservations);
         let mut outputs = Vec::new();
         for (index, inst) in instructions.into_iter().enumerate() {
+            #[cfg(feature="radix_runtime_logger")]
+            radix_runtime_logger!(instruction_start(&inst));
+            
             api.update_instruction_index(index)?;
-
+            
             let result = match inst {
                 InstructionV1::TakeAllFromWorktop { resource_address } => {
                     let bucket = worktop.take_all(resource_address, api)?;

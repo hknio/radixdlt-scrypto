@@ -44,6 +44,9 @@ wasmer-compiler-singlepass = { version = "2.2.1", optional = true }
 serde_json = { version = "1.0.81", optional = true, default-features = false }
 lazy_static = { version = "1.4.0" }
 
+radix-runtime-fuzzer-common = { path = "../radix-runtime-fuzzer-common", optional = true }
+radix-runtime-fuzzer-derive = { path = "../radix-runtime-fuzzer-derive", optional = true }
+
 [dev-dependencies]
 wabt = { version = "0.10.0" }
 criterion = { version = "0.3", features = ["html_reports"] }
@@ -97,6 +100,22 @@ full_wasm_benchmarks = []
 
 # This flag disables package size limit, memory size limit and fee limit
 coverage = [ "radix-engine-common/coverage" ]
+
+radix_runtime_fuzzing = [
+    "radix_engine_fuzzing",
+    "dep:radix-runtime-fuzzer-common",
+    "dep:radix-runtime-fuzzer-derive",
+    "radix-runtime-fuzzer-common/radix_runtime_fuzzing",
+    "radix-runtime-fuzzer-derive/radix_runtime_fuzzing"
+]
+
+radix_runtime_logger = [
+    "radix_engine_fuzzing",
+    "dep:radix-runtime-fuzzer-common",
+    "dep:radix-runtime-fuzzer-derive",
+    "radix-runtime-fuzzer-common/radix_runtime_logger",
+    "radix-runtime-fuzzer-derive/radix_runtime_logger"
+]
 
 # Ref: https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
 [lib]

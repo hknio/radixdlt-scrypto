@@ -1,7 +1,8 @@
+use radix_engine_derive::ScryptoSbor;
 use radix_engine_store_interface::interface::*;
 use sbor::rust::prelude::*;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, ScryptoSbor)]
 pub struct InMemorySubstateDatabase {
     partitions: BTreeMap<DbPartitionKey, BTreeMap<DbSortKey, DbSubstateValue>>,
 }
