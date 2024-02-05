@@ -11,9 +11,6 @@ use crate::*;
 #[cfg(feature = "radix_engine_fuzzing")]
 use arbitrary::Arbitrary;
 
-use std::mem;
-use std::ptr;
-
 /// Represents any value conforming to the SBOR value model.
 #[cfg_attr(feature = "radix_engine_fuzzing", derive(Arbitrary))]
 #[cfg_attr(
@@ -796,7 +793,7 @@ mod tests {
     }
 
     pub fn encode_array_of_depth(depth: usize) -> Result<Vec<u8>, EncodeError> {
-        let mut buf = Vec::new();
+        let mut buf: Vec<u8> = Vec::new();
         let mut encoder = BasicEncoder::new(&mut buf, 256);
         encoder.write_payload_prefix(BASIC_SBOR_V1_PAYLOAD_PREFIX)?;
         encoder.write_value_kind(ValueKind::Array)?;
