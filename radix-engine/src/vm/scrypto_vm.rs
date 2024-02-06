@@ -1,4 +1,4 @@
-use crate::errors::{RuntimeError, SystemUpstreamError, VmError};
+use crate::errors::{RuntimeError, SystemUpstreamError};
 use crate::types::*;
 use crate::vm::vm::VmInvoke;
 use crate::vm::wasm::*;

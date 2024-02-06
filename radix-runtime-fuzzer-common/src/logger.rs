@@ -1,4 +1,3 @@
-use core::panic;
 use std::{fs::OpenOptions, io::Write};
 use transaction::{model::{ExecutionContext, InstructionV1}, prelude::{node_modules::auth::AuthAddresses, Executable}};
 use radix_engine_common::prelude::*;
@@ -40,7 +39,7 @@ impl RadixRuntimeInvokeLogger {
         self.depth += 1;
     }
 
-    pub fn runtime_call_end(&mut self, data: Option<Vec<u8>>) {
+    pub fn runtime_call_end(&mut self, _data: Option<Vec<u8>>) {
         self.depth -= 1;
     }
 }
@@ -144,7 +143,7 @@ impl RadixRuntimeLogger {
         self.instruction_index += 1;
     }
 
-    pub fn invoke_start(&mut self, data: &Vec<u8>) {       
+    pub fn invoke_start(&mut self, _data: &Vec<u8>) {       
         self.invoke_index.push(self.invoke_loggers.len());
         self.invoke_loggers.push(RadixRuntimeInvokeLogger::new());
     }
@@ -171,6 +170,6 @@ pub static RADIX_RUNTIME_LOGGER: once_cell::sync::Lazy<std::sync::Mutex<RadixRun
 #[macro_export]
 macro_rules! radix_runtime_logger {
     ($($arg:tt)*) => {
-        $crate::RADIX_RUNTIME_LOGGER.lock().unwrap().$($arg)*
+        $crate::RADIX_RUNTIME_LOGGER.lock().unwrap_or_else(|e| e.into_inner()).$($arg)*
     };
 }

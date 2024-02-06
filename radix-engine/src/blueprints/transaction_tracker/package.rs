@@ -196,6 +196,9 @@ pub struct TransactionTrackerSubstateV1 {
     pub partition_range_start_inclusive: u8,
     pub partition_range_end_inclusive: u8,
     pub epochs_per_partition: u64,
+
+    // custom
+    pub next_node_ids: [u32; 256],
 }
 
 impl TransactionTrackerSubstateV1 {
@@ -258,6 +261,7 @@ impl TransactionTrackerBlueprint {
                     partition_range_start_inclusive: PARTITION_RANGE_START,
                     partition_range_end_inclusive: PARTITION_RANGE_END,
                     epochs_per_partition: EPOCHS_PER_PARTITION,
+                    next_node_ids: DEFAULT_NEXT_NODE_IDS,
                 }))
             ),
         )?;
@@ -301,6 +305,7 @@ mod tests {
             partition_range_start_inclusive: PARTITION_RANGE_START,
             partition_range_end_inclusive: PARTITION_RANGE_END,
             epochs_per_partition: EPOCHS_PER_PARTITION,
+            next_node_ids: DEFAULT_NEXT_NODE_IDS,
         });
         let num_partitions = (PARTITION_RANGE_END - PARTITION_RANGE_START + 1) as u64;
 

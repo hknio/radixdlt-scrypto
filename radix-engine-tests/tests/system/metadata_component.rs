@@ -378,7 +378,7 @@ fn can_set_origin_metadata_through_manifest() {
 #[test]
 fn can_set_public_key_hash_metadata_through_manifest() {
     can_set_metadata_through_manifest(MetadataValue::PublicKeyHash(PublicKeyHash::Secp256k1(
-        Secp256k1PublicKeyHash([0; 29]),
+        Secp256k1PublicKeyHash([0; 2]),
     )));
 }
 

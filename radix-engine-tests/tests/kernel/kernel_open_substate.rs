@@ -41,7 +41,7 @@ pub fn test_open_substate_of_invisible_package_address() {
     Bootstrapper::new(NetworkDefinition::simulator(), &mut database, vm, false);
 
     // Create kernel
-    let mut id_allocator = IdAllocator::new(executable.intent_hash().to_hash());
+    let mut id_allocator = IdAllocator::new(executable.intent_hash().to_hash(), DEFAULT_NEXT_NODE_IDS);
     let mut system = SystemConfig {
         blueprint_cache: NonIterMap::new(),
         auth_cache: NonIterMap::new(),

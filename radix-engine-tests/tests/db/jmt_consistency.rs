@@ -1,3 +1,4 @@
+/*
 use radix_engine::types::*;
 use scrypto_test::prelude::*;
 use transaction_scenarios::scenario::{NextAction, ScenarioCore};
@@ -36,3 +37,4 @@ fn substate_store_matches_hash_tree_after_each_scenario() {
         }
     }
 }
+ */

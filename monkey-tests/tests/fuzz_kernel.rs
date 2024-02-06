@@ -508,7 +508,7 @@ fn kernel_fuzz<F: FnMut(&mut KernelFuzzer) -> Vec<KernelFuzzAction>>(
     mut action_generator: F,
 ) -> Result<(), RuntimeError> {
     let txn_hash = &seed.to_be_bytes().repeat(4)[..];
-    let mut id_allocator = IdAllocator::new(Hash(txn_hash.try_into().unwrap()));
+    let mut id_allocator = IdAllocator::new(Hash(txn_hash.try_into().unwrap()), [0u32; 256]);
     let mut substate_db = InMemorySubstateDatabase::standard();
     let mut track = Track::<InMemorySubstateDatabase, SpreadPrefixKeyMapper>::new(&substate_db);
     let mut callback = TestCallbackObject;

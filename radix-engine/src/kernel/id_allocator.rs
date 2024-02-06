@@ -5,14 +5,14 @@ use crate::types::*;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IdAllocator {
     transaction_hash: Hash,
-    next_id: u32,
+    next_ids: [u32; 256],
 }
 
 impl IdAllocator {
-    pub fn new(transaction_hash: Hash) -> Self {
+    pub fn new(transaction_hash: Hash, next_ids: [u32; 256]) -> Self {
         Self {
             transaction_hash,
-            next_id: 0u32,
+            next_ids
         }
     }
 
@@ -24,27 +24,28 @@ impl IdAllocator {
         Ok(node_id)
     }
 
-    fn next(&mut self) -> Result<u32, IdAllocationError> {
-        if self.next_id == u32::MAX {
+    pub fn get_next_node_ids(&self) -> [u32; 256] {
+        self.next_ids.clone()
+    }
+
+    fn next(&mut self, entity_type: EntityType) -> Result<u32, IdAllocationError> {
+        let next_id = &mut self.next_ids[entity_type as usize];
+        if *next_id >= u16::MAX as u32 {
             Err(IdAllocationError::OutOfID)
         } else {
-            let rtn = self.next_id;
-            self.next_id += 1;
+            let rtn = *next_id;
+            *next_id += 1;
             Ok(rtn)
         }
     }
 
     fn next_node_id(&mut self, entity_type: EntityType) -> Result<NodeId, IdAllocationError> {
-        // Compute `hash(transaction_hash, index)`
-        let mut buf = [0u8; Hash::LENGTH + 4];
-        buf[..Hash::LENGTH].copy_from_slice(self.transaction_hash.as_ref());
-        buf[Hash::LENGTH..].copy_from_slice(&self.next()?.to_le_bytes());
-        let hash = hash(buf);
-
         // Install the entity type
-        let mut node_id: [u8; NodeId::LENGTH] = hash.lower_bytes();
+        let next_id = self.next(entity_type)?;
+        let mut node_id: [u8; NodeId::LENGTH] = [0; NodeId::LENGTH];
         node_id[0] = entity_type as u8;
-
+        node_id[1] = ((next_id >> 8) & 0xFF) as u8;
+        node_id[2] = (next_id & 0xFF) as u8;
         Ok(NodeId(node_id))
     }
 }

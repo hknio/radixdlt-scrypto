@@ -230,7 +230,7 @@ where
         }
 
         // Create the Id allocator we will be using throughout this test
-        let id_allocator = IdAllocator::new(Self::DEFAULT_INTENT_HASH);
+        let id_allocator = IdAllocator::new(Self::DEFAULT_INTENT_HASH, DEFAULT_NEXT_NODE_IDS);
 
         // Determine if any protocol updates need to be run against the database.
         if self.protocol_updates.consensus_manager_seconds_precision {
