@@ -127,10 +127,12 @@ impl FeeTable {
     #[inline]
     pub fn run_native_code_cost(
         &self,
-        package_address: &PackageAddress,
-        export_name: &str,
-        input_size: &usize,
+        _package_address: &PackageAddress,
+        _export_name: &str,
+        _input_size: &usize,
     ) -> u32 {
+        return 1;
+        /*
         let native_execution_units = NATIVE_FUNCTION_BASE_COSTS
             .get(package_address)
             .and_then(|x| x.get(export_name).cloned())
@@ -148,6 +150,7 @@ impl FeeTable {
             });
 
         native_execution_units / CPU_INSTRUCTIONS_TO_COST_UNIT
+         */
     }
 
     #[inline]

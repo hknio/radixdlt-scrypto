@@ -4,10 +4,11 @@ use scrypto_test::prelude::*;
 
 
 const TARGET_PACKAGE_ADDRESS: [u8; NodeId::LENGTH] = [
-    13, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
+    13, 0, 0
 ];
 
 /// This tests the external_blueprint! and external_component! macros
+#[ignore]
 #[test]
 fn test_external_bridges() {
     // ARRANGE

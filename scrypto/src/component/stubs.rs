@@ -12,9 +12,7 @@ use crate::prelude::*;
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 100u8, 247u8, 152u8, 202u8, 204u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 189u8, 241u8, 172u8, 105u8, 67u8, 234u8, 38u8, 49u8, 140u8,
-        99u8, 24u8, 198u8,
+        13, 0, 14
     ]),
     Faucet,
     "Faucet",
@@ -31,9 +29,7 @@ extern_blueprint_internal! {
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 108u8, 78u8, 27u8, 64u8, 204u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 191u8, 213u8, 212u8, 95u8, 72u8, 198u8, 134u8, 49u8, 140u8,
-        99u8, 24u8, 198u8,
+        13, 0, 5
     ]),
     ConsensusManager,
     "ConsensusManager",
@@ -75,9 +71,7 @@ extern_blueprint_internal! {
 }
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 108u8, 78u8, 27u8, 64u8, 204u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 191u8, 213u8, 212u8, 95u8, 72u8, 198u8, 134u8, 49u8, 140u8,
-        99u8, 24u8, 198u8,
+        13, 0, 5
     ]),
     Validator,
     "Validator",
@@ -118,9 +112,7 @@ extern_blueprint_internal! {
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 102u8, 205u8, 100u8, 49u8, 140u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 158u8, 154u8, 127u8, 143u8, 23u8, 156u8, 166u8, 49u8, 140u8,
-        99u8, 24u8, 198u8,
+        13, 0, 4
     ]),
     Identity,
     "Identity",
@@ -137,9 +129,7 @@ extern_blueprint_internal! {
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 110u8, 227u8, 19u8, 89u8, 140u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 188u8, 170u8, 46u8, 149u8, 74u8, 150u8, 38u8, 49u8, 140u8, 99u8,
-        24u8, 198u8,
+        13, 0, 3
     ]),
     Account,
     "Account",
@@ -222,9 +212,7 @@ extern_blueprint_internal! {
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 96u8, 252u8, 198u8, 49u8, 140u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 245u8, 62u8, 62u8, 42u8, 148u8, 250u8, 42u8, 166u8, 49u8, 140u8, 99u8,
-        24u8, 198u8,
+        13, 0, 7
     ]),
     MultiResourcePool,
     "MultiResourcePool",
@@ -257,9 +245,7 @@ extern_blueprint_internal! {
 }
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 96u8, 252u8, 198u8, 49u8, 140u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 245u8, 62u8, 62u8, 42u8, 148u8, 250u8, 42u8, 166u8, 49u8, 140u8, 99u8,
-        24u8, 198u8,
+        13, 0, 7
     ]),
     OneResourcePool,
     "OneResourcePool",
@@ -288,9 +274,7 @@ extern_blueprint_internal! {
 }
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 96u8, 252u8, 198u8, 49u8, 140u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 245u8, 62u8, 62u8, 42u8, 148u8, 250u8, 42u8, 166u8, 49u8, 140u8, 99u8,
-        24u8, 198u8,
+        13, 0, 7
     ]),
     TwoResourcePool,
     "TwoResourcePool",
@@ -324,9 +308,7 @@ extern_blueprint_internal! {
 
 extern_blueprint_internal! {
     PackageAddress::new_or_panic([
-        13u8, 144u8, 99u8, 24u8, 198u8, 49u8, 140u8, 108u8, 77u8, 99u8, 248u8, 204u8, 99u8, 24u8,
-        198u8, 49u8, 140u8, 247u8, 191u8, 85u8, 61u8, 60u8, 165u8, 22u8, 134u8, 49u8, 140u8, 99u8,
-        24u8, 198u8,
+        13, 0, 6
     ]),
     AccessController,
     "AccessController",

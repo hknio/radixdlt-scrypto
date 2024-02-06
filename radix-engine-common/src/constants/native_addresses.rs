@@ -8,13 +8,24 @@ use crate::types::*;
 // FUNGIBLES
 //=========================================================================
 
+pub const DEFAULT_NEXT_NODE_IDS : [u32; 256] = {
+    let mut arr = [1; 256];
+    arr[13] += 15;
+    arr[93] += 1;
+    arr[130] += 1;
+    arr[134] += 1;
+    arr[154] += 9;
+    arr[192] += 2;
+    arr
+};
+
+
 /// XRD is the native token of the Radix ledger.
 /// It is a fungible token, measured in attos (`10^-18`).
 ///
 /// It is used for paying fees and staking.
 pub const XRD: ResourceAddress = ResourceAddress::new_or_panic([
-    93, 166, 99, 24, 198, 49, 140, 97, 245, 166, 27, 76, 99, 24, 198, 49, 140, 247, 148, 170, 141,
-    41, 95, 20, 230, 49, 140, 99, 24, 198,
+    93, 0, 1
 ]);
 
 //=========================================================================
@@ -23,14 +34,12 @@ pub const XRD: ResourceAddress = ResourceAddress::new_or_panic([
 
 /// The non-fungible badge resource which is used for virtual proofs of ECDSA Secp256k1 transacton signatures in the transaction processor.
 pub const SECP256K1_SIGNATURE_VIRTUAL_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 104, 103, 1, 130, 12, 99, 24, 198, 49, 140, 247, 215, 81, 57,
-    213, 170, 213, 230, 49, 140, 99, 24, 198,
+    154, 0, 1
 ]);
 
 /// The non-fungible badge resource which is used for virtual proofs of EdDSA Ed25519 transacton signatures in the transaction processor.
 pub const ED25519_SIGNATURE_VIRTUAL_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 108, 181, 84, 130, 12, 99, 24, 198, 49, 140, 247, 169, 81, 215,
-    169, 229, 71, 198, 49, 140, 99, 24, 198,
+    154, 0, 2
 ]);
 
 /// The non-fungible badge resource which is used for virtual proofs which represent the package of
@@ -40,8 +49,7 @@ pub const ED25519_SIGNATURE_VIRTUAL_BADGE: ResourceAddress = ResourceAddress::ne
 /// then the access check for that global call will see a proof of this `PACKAGE_OF_DIRECT_CALLER_VIRTUAL_BADGE` for the package of A2.
 pub const PACKAGE_OF_DIRECT_CALLER_VIRTUAL_BADGE: ResourceAddress =
     ResourceAddress::new_or_panic([
-        154, 76, 99, 24, 198, 49, 140, 96, 219, 31, 248, 204, 99, 24, 198, 49, 140, 247, 199, 84,
-        86, 171, 162, 251, 198, 49, 140, 99, 24, 198,
+        154, 0, 3
     ]);
 
 /// The non-fungible badge resource which is used for virtual proofs which represent the global ancestor
@@ -50,8 +58,7 @@ pub const PACKAGE_OF_DIRECT_CALLER_VIRTUAL_BADGE: ResourceAddress =
 /// For example, if there is a global component A containing an internal component A2, and A2 makes a global call to B,
 /// then the access check for that global call will see a proof of this `GLOBAL_CALLER_VIRTUAL_BADGE` for the global component A.
 pub const GLOBAL_CALLER_VIRTUAL_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 100, 127, 31, 248, 204, 99, 24, 198, 49, 140, 247, 170, 52, 123,
-    223, 170, 81, 230, 49, 140, 99, 24, 198,
+    154, 0, 4
 ]);
 
 //=========================================================================
@@ -65,8 +72,7 @@ pub const GLOBAL_CALLER_VIRTUAL_BADGE: ResourceAddress = ResourceAddress::new_or
 /// * `0` is used to represent a full-authority system transaction such as genesis, or a protocol update
 /// * `1` is used to represent a consensus-authrority transaction, such as a round change
 pub const SYSTEM_TRANSACTION_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 104, 18, 11, 52, 204, 99, 24, 198, 49, 140, 247, 171, 71, 140,
-    85, 71, 199, 198, 49, 140, 99, 24, 198,
+    154, 0, 5
 ]);
 
 //=========================================================================
@@ -75,26 +81,22 @@ pub const SYSTEM_TRANSACTION_BADGE: ResourceAddress = ResourceAddress::new_or_pa
 
 /// The non-fungible badge resource which is used for package ownership when creating packages with the simple package creation set-up.
 pub const PACKAGE_OWNER_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 96, 217, 14, 152, 204, 99, 24, 198, 49, 140, 247, 170, 148, 61,
-    41, 26, 62, 134, 49, 140, 99, 24, 198,
+    154, 0, 6
 ]);
 
 /// The non-fungible badge resource which is used for validator ownership.
 pub const VALIDATOR_OWNER_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 102, 52, 110, 152, 204, 99, 24, 198, 49, 140, 247, 214, 58, 162,
-    169, 19, 198, 166, 49, 140, 99, 24, 198,
+    154, 0, 7
 ]);
 
 /// The non-fungible badge resource which is used for account ownership, if accounts have been set up with simple account creation, or have been securified.
 pub const ACCOUNT_OWNER_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 110, 227, 14, 152, 204, 99, 24, 198, 49, 140, 247, 235, 90, 171,
-    212, 167, 233, 70, 49, 140, 99, 24, 198,
+    154, 0, 8
 ]);
 
 /// The non-fungible badge resource which is used for identity ownership, if identities have been set up with simple account creation, or have been securified.
 pub const IDENTITY_OWNER_BADGE: ResourceAddress = ResourceAddress::new_or_panic([
-    154, 76, 99, 24, 198, 49, 140, 102, 205, 110, 152, 204, 99, 24, 198, 49, 140, 247, 168, 254,
-    213, 107, 82, 168, 230, 49, 140, 99, 24, 198,
+    154, 0, 9
 ]);
 
 //=========================================================================
@@ -103,95 +105,80 @@ pub const IDENTITY_OWNER_BADGE: ResourceAddress = ResourceAddress::new_or_panic(
 
 /// The native package for package deployment.
 pub const PACKAGE_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 96, 247, 22, 70, 76, 99, 24, 198, 49, 140, 247, 191, 202, 214,
-    163, 21, 43, 70, 49, 140, 99, 24, 198,
+    13, 0, 1
 ]);
 
 /// The native package for resource managers, proofs, buckets, vaults etc.
 pub const RESOURCE_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 97, 230, 3, 198, 76, 99, 24, 198, 49, 140, 247, 190, 145, 61,
-    99, 170, 251, 198, 49, 140, 99, 24, 198,
+    13, 0, 2
 ]);
 
 /// The native package for accounts.
 pub const ACCOUNT_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 110, 227, 19, 89, 140, 99, 24, 198, 49, 140, 247, 188, 170, 46,
-    149, 74, 150, 38, 49, 140, 99, 24, 198,
+    13, 0, 3
 ]);
 
 /// The native package for identities.
 pub const IDENTITY_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 102, 205, 100, 49, 140, 99, 24, 198, 49, 140, 247, 158, 154,
-    127, 143, 23, 156, 166, 49, 140, 99, 24, 198,
+    13, 0, 4
 ]);
 
 /// The native package for the consensus manager.
 pub const CONSENSUS_MANAGER_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 108, 78, 27, 64, 204, 99, 24, 198, 49, 140, 247, 191, 213, 212,
-    95, 72, 198, 134, 49, 140, 99, 24, 198,
+    13, 0, 5
 ]);
 
 /// The native package for access controllers.
 pub const ACCESS_CONTROLLER_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 108, 77, 99, 248, 204, 99, 24, 198, 49, 140, 247, 191, 85, 61,
-    60, 165, 22, 134, 49, 140, 99, 24, 198,
+    13, 0, 6
 ]);
 
 /// The native package for pools.
 pub const POOL_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 96, 252, 198, 49, 140, 99, 24, 198, 49, 140, 245, 62, 62, 42,
-    148, 250, 42, 166, 49, 140, 99, 24, 198,
+    13, 0, 7
 ]);
 
 /// The native package for the transaction processor.
 pub const TRANSACTION_PROCESSOR_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 101, 154, 97, 48, 204, 99, 24, 198, 49, 140, 247, 168, 186, 82,
-    149, 234, 191, 70, 49, 140, 99, 24, 198,
+    13, 0, 8
 ]);
 
 /// The native package for the metadata module.
 pub const METADATA_MODULE_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 109, 173, 189, 95, 76, 99, 24, 198, 49, 140, 247, 209, 85, 213,
-    61, 229, 104, 166, 49, 140, 99, 24, 198,
+    13, 0, 9
 ]);
 
 /// The native package for the royalty module.
 pub const ROYALTY_MODULE_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 97, 147, 191, 89, 12, 99, 24, 198, 49, 140, 247, 196, 245, 45,
-    61, 24, 151, 70, 49, 140, 99, 24, 198,
+    13, 0, 10
 ]);
 
 /// The native package for the role assignment module.
 pub const ROLE_ASSIGNMENT_MODULE_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 110, 143, 159, 204, 12, 99, 24, 198, 49, 140, 247, 170, 47, 173,
-    116, 162, 158, 38, 49, 140, 99, 24, 198,
+    13, 0, 11
 ]);
 
 /// The native package for test utils.
 pub const TEST_UTILS_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 249, 211, 192, 59, 233, 186, 23, 2, 154, 130, 219, 206, 96, 108, 18, 236, 85, 32, 194, 145,
-    11, 130, 158, 239, 6, 118, 153, 103, 15,
+    13, 0, 12
 ]);
 
 /// The scrypto package for the genesis helper.
 pub const GENESIS_HELPER_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 100, 102, 112, 129, 140, 99, 24, 198, 49, 140, 247, 214, 62, 86,
-    170, 175, 122, 38, 49, 140, 99, 24, 198,
+    13, 0, 13
 ]);
 /// The name of the genesis helper blueprint under the `GENESIS_HELPER_PACKAGE`.
 pub const GENESIS_HELPER_BLUEPRINT: &str = "GenesisHelper";
 
 /// The scrypto package for the faucet
 pub const FAUCET_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 100, 247, 152, 202, 204, 99, 24, 198, 49, 140, 247, 189, 241,
-    172, 105, 67, 234, 38, 49, 140, 99, 24, 198,
+    13, 0, 14
 ]);
 /// The name of the faucet blueprint under the `FAUCET_PACKAGE`.
 pub const FAUCET_BLUEPRINT: &str = "Faucet";
 
 pub const TRANSACTION_TRACKER_PACKAGE: PackageAddress = PackageAddress::new_or_panic([
-    13, 144, 99, 24, 198, 49, 140, 101, 153, 99, 237, 140, 99, 24, 198, 49, 140, 247, 190, 133,
-    161, 125, 72, 188, 166, 49, 140, 99, 24, 198,
+    13, 0, 15
 ]);
 pub const TRANSACTION_TRACKER_BLUEPRINT: &str = "TransactionTracker";
 
@@ -201,8 +188,7 @@ pub const TRANSACTION_TRACKER_BLUEPRINT: &str = "TransactionTracker";
 
 /// The consensus manager native component - in charge of validators, consensus and epochs.
 pub const CONSENSUS_MANAGER: ComponentAddress = ComponentAddress::new_or_panic([
-    134, 12, 99, 24, 198, 49, 140, 108, 78, 27, 64, 204, 99, 24, 198, 49, 140, 247, 188, 165, 46,
-    181, 74, 106, 134, 49, 140, 99, 24, 198,
+    134, 0, 1
 ]);
 
 //=========================================================================
@@ -211,22 +197,19 @@ pub const CONSENSUS_MANAGER: ComponentAddress = ComponentAddress::new_or_panic([
 
 /// The genesis helper scrypto component - used for sorting out genesis.
 pub const GENESIS_HELPER: ComponentAddress = ComponentAddress::new_or_panic([
-    192, 86, 99, 24, 198, 49, 140, 100, 102, 112, 129, 140, 99, 24, 198, 49, 140, 247, 188, 190,
-    244, 94, 170, 68, 166, 49, 140, 99, 24, 198,
+    192, 0, 1
 ]);
 
 /// The faucet native component - use this on testnets for getting XRD and locking fee.
 pub const FAUCET: ComponentAddress = ComponentAddress::new_or_panic([
-    192, 86, 99, 24, 198, 49, 140, 100, 247, 152, 202, 204, 99, 24, 198, 49, 140, 247, 190, 138,
-    247, 138, 120, 248, 166, 49, 140, 99, 24, 198,
+    192, 0, 2
 ]);
 // Export an alias for backwards compatibility of dApp developer tests
 pub use FAUCET as FAUCET_COMPONENT;
 
 /// The intent hash store component
 pub const TRANSACTION_TRACKER: ComponentAddress = ComponentAddress::new_or_panic([
-    130, 204, 99, 24, 198, 49, 140, 101, 153, 99, 237, 140, 99, 24, 198, 49, 140, 247, 232, 245,
-    174, 143, 74, 150, 166, 49, 140, 99, 24, 198,
+    130, 0, 1
 ]);
 
 //=========================================================================

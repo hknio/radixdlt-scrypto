@@ -46,6 +46,7 @@ use radix_engine_store_interface::interface::{
 use radix_engine_stores::hash_tree_support::HashTreeUpdatingDatabase;
 use radix_engine_stores::memory_db::InMemorySubstateDatabase;
 use scrypto::prelude::*;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use transaction::validation::{
     NotarizedTransactionValidator, TransactionValidator, ValidationConfig,
@@ -447,6 +448,26 @@ impl<E: NativeVmExtension, D: TestDatabase> TestRunnerBuilder<E, D> {
         (runner, next_epoch.validator_set)
     }
 
+    #[cfg(feature = "use_snapshot")]
+    pub fn build(self) -> TestRunner<E, InMemorySubstateDatabase> {
+        let file = std::fs::File::open("/workspaces/develop/snapshot.bin");
+        if file.is_err() {
+            eprintln!("Snapshot file not found. Creating a new snapshot.");
+            let runner = TestRunnerBuilder::new().build_and_get_epoch().0;            
+            let snapshot = runner.create_snapshot();
+            let snapshot_data = scrypto_encode(&snapshot).unwrap();
+            let mut file = std::fs::File::create("/workspaces/develop/snapshot.bin").unwrap();
+            file.write_all(&snapshot_data).unwrap();
+        }
+        let file = std::fs::File::open("/workspaces/develop/snapshot.bin").unwrap();
+        let mut reader = std::io::BufReader::new(file);
+        let mut buffer = Vec::new();
+        reader.read_to_end(&mut buffer).unwrap();
+        let snapshot: TestRunnerSnapshot = scrypto_decode(&buffer).unwrap();
+        self.build_from_snapshot(snapshot)                
+    }
+
+    #[cfg(not(feature = "use_snapshot"))]
     pub fn build(self) -> TestRunner<E, D> {
         self.build_and_get_epoch().0
     }
@@ -474,12 +495,12 @@ impl<E: NativeVmExtension, D: TestDatabase> Drop for TestRunner<E, D> {
 
 #[derive(Clone, ScryptoSbor)]
 pub struct TestRunnerSnapshot {
-    database: InMemorySubstateDatabase,
-    next_private_key: u64,
-    next_transaction_nonce: u32,
-    collected_events: Vec<Vec<(EventTypeIdentifier, Vec<u8>)>>,
-    xrd_free_credits_used: bool,
-    skip_receipt_check: bool,
+    pub database: InMemorySubstateDatabase,
+    pub next_private_key: u64,
+    pub next_transaction_nonce: u32,
+    pub collected_events: Vec<Vec<(EventTypeIdentifier, Vec<u8>)>>,
+    pub xrd_free_credits_used: bool,
+    pub skip_receipt_check: bool,
 }
 
 impl<E: NativeVmExtension> TestRunner<E, InMemorySubstateDatabase> {

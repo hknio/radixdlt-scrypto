@@ -16,6 +16,7 @@ use radix_engine_common::{data::scrypto, prelude::*};
 
 use radix_runtime_fuzzer::FuzzRunner;
 use transaction::model::InstructionV1;
+use transaction::model::extract_references;
 
 struct Fuzzer {
     runner: FuzzRunner,
@@ -25,9 +26,13 @@ struct Fuzzer {
 
 impl Fuzzer {
     fn new() -> Self {
-        let txs_data = include_bytes!("/workspaces/develop/radix-runtime-fuzzer-test-cases/extracted/txs.bin");
+        let txs_data = include_bytes!("../../radix-runtime-fuzzer-test-cases/extracted/txs.bin");
         let txs: Vec<Vec<RadixRuntimeFuzzerTransaction>> = scrypto_decode(txs_data).unwrap();
-        let mut runner = FuzzRunner::new();
+
+        let snapshot_data = include_bytes!("../../snapshot.bin");
+        let snapshot = scrypto_decode(snapshot_data).unwrap();
+
+        let mut runner = FuzzRunner::from_snapshot(snapshot);
 
         /*
         for tx in &txs {
@@ -54,21 +59,35 @@ impl Fuzzer {
 
         let mut txs = self.txs[tx_id as usize].clone();
         let mut tx_id = 0;
-
-        let mut decoder = ManifestDecoder::new(&data[1..], SCRYPTO_SBOR_V1_MAX_DEPTH);
-        let mut invokes : Vec<RadixRuntimeFuzzerInput> = Vec::new();
-        invokes.push(Vec::new());
+        let mut txs_instructions = Vec::new();
+        let mut decoder = ManifestDecoder::new(&data[1..], MANIFEST_SBOR_V1_MAX_DEPTH - 4);
         while decoder.remaining_bytes() > 0 && tx_id < txs.len() {
-            let instruction = decoder.decode::<RadixRuntimeFuzzerInstruction>().map_err(|_| ())?;
-            invokes.last_mut().unwrap().push(scrypto_encode(&instruction).unwrap());
-            if let RadixRuntimeFuzzerInstruction::Return(_) = instruction {
-                if txs[tx_id].invokes.len() == invokes.len() {
-                    txs[tx_id].invokes = invokes.clone();
-                    invokes.clear();
-                    tx_id += 1;
-                }
-                invokes.push(Vec::new());
-            }            
+            let mut instructions = Vec::new();
+            while decoder.peek_byte().map_err(|_| ())? != 0xFF {
+                let instruction = decoder.decode::<InstructionV1>().map_err(|_| ())?;
+                instructions.push(instruction);
+            }
+            decoder.read_byte().map_err(|_| ())?;
+            let mut invokes : Vec<RadixRuntimeFuzzerInput> = Vec::new();
+            invokes.push(Vec::new());
+            while decoder.peek_byte().map_err(|_| ())? != 0xFF {
+                let instruction = decoder.decode::<RadixRuntimeFuzzerInstruction>().map_err(|_| ())?;
+                invokes.last_mut().unwrap().push(scrypto_encode(&instruction).unwrap());
+                if let RadixRuntimeFuzzerInstruction::Return(_) = instruction {
+                    invokes.push(Vec::new());
+                }    
+            }
+            decoder.read_byte().map_err(|_| ())?;
+            invokes.pop();
+
+            txs_instructions.push(instructions);
+            txs[tx_id].invokes = invokes;
+            tx_id += 1;
+        }
+
+        for (tx_id, instructions) in txs_instructions.iter_mut().enumerate() {
+            txs[tx_id].instructions = manifest_encode(instructions).unwrap();
+            txs[tx_id].references = extract_references(&txs[tx_id].instructions[1..], traversal::ExpectedStart::Value);
         }
 
         let mut is_ok = txs.len() > 0;
@@ -80,6 +99,11 @@ impl Fuzzer {
             }
         }
         self.runner.reset();
+
+        if self.executed_txs % 1000 == 0 {
+            println!("Executed {} transactions", self.executed_txs);
+        }
+
         Ok(is_ok)
     }
 }

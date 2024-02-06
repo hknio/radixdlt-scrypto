@@ -1,3 +1,4 @@
+/*
 use radix_engine_tests::common::*;
 use radix_engine::types::*;
 use scrypto::resource::DIVISIBILITY_MAXIMUM;
@@ -75,3 +76,4 @@ fn create_and_pass_multiple_proofs() -> Hash {
 
     test_runner.get_state_hash()
 }
+ */

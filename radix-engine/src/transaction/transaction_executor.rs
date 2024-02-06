@@ -302,6 +302,7 @@ where
                 let (
                     interpretation_result,
                     (mut costing_module, runtime_module, execution_trace_module),
+                    next_ids,
                 ) = self.interpret_manifest::<T>(
                     &mut track,
                     executable,
@@ -387,6 +388,7 @@ where
                                 next_epoch,
                                 executable.intent_hash(),
                                 is_success,
+                                next_ids
                             );
                         }
 
@@ -604,6 +606,25 @@ where
         Ok(())
     }
 
+    fn get_next_node_ids(&self, track: &mut Track<S, SpreadPrefixKeyMapper>) -> [u32; 256] {
+        let substate = track
+            .read_substate(
+                TRANSACTION_TRACKER.as_node_id(),
+                MAIN_BASE_PARTITION,
+                &TransactionTrackerField::TransactionTracker.into(),
+            );
+        if let Some(substate) = substate {
+            let transaction_tracker = substate
+                .as_typed::<FieldSubstate<TransactionTrackerSubstate>>()
+                .unwrap()
+                .into_payload()
+                .into_v1();
+            transaction_tracker.next_node_ids
+        } else {
+            DEFAULT_NEXT_NODE_IDS
+        }
+    }
+
     fn interpret_manifest<T: WrappedSystem<V>>(
         &self,
         track: &mut Track<S, SpreadPrefixKeyMapper>,
@@ -619,8 +640,10 @@ where
             TransactionRuntimeModule,
             ExecutionTraceModule,
         ),
+        [u32; 256],
     ) {
-        let mut id_allocator = IdAllocator::new(executable.intent_hash().to_hash());
+        let next_ids = self.get_next_node_ids(track);
+        let mut id_allocator = IdAllocator::new(executable.intent_hash().to_hash(), next_ids);
         let system = SystemConfig {
             blueprint_cache: NonIterMap::new(),
             auth_cache: NonIterMap::new(),
@@ -713,7 +736,7 @@ where
             });
 
         let system = wrapped_system.to_system();
-        (interpretation_result, system.modules.unpack())
+        (interpretation_result, system.modules.unpack(), id_allocator.get_next_node_ids())
     }
 
     fn determine_result_type(
@@ -1005,6 +1028,7 @@ where
         next_epoch: Epoch,
         intent_hash: &TransactionIntentHash,
         is_success: bool,
+        next_node_ids: [u32; 256]
     ) {
         // Read the intent hash store
         let transaction_tracker = track
@@ -1019,6 +1043,16 @@ where
             .into_payload();
 
         let mut transaction_tracker = transaction_tracker.into_v1();
+        transaction_tracker.next_node_ids = next_node_ids;
+
+        /*
+        for (id, next_node_id) in transaction_tracker.next_node_ids.iter().enumerate() {
+            if next_node_ids[id] > 1 {
+                eprint!("[{}: {}]", id, next_node_id);
+            }
+        }
+        eprintln!();
+         */
 
         // Update the status of the intent hash
         if let TransactionIntentHash::ToCheck {

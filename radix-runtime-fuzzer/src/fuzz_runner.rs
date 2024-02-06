@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use radix_engine::{
     transaction::TransactionReceiptV1, types::scrypto_decode, vm::NoExtension
 };
@@ -16,7 +18,15 @@ pub struct FuzzRunner {
 impl FuzzRunner {
     pub fn new() -> Self {
         // snapshot is used to avoid generating coverage data from bootstrap
-        let snapshot: TestRunnerSnapshot = scrypto_decode(include_bytes!("snapshot.bin")).unwrap();
+        let file = std::fs::File::open("/workspaces/develop/snapshot.bin").unwrap();
+        let mut reader = std::io::BufReader::new(file);
+        let mut buffer = Vec::new();
+        reader.read_to_end(&mut buffer).unwrap();
+        let snapshot: TestRunnerSnapshot = scrypto_decode(&buffer).unwrap();
+        Self::from_snapshot(snapshot)
+    }
+
+    pub fn from_snapshot(snapshot : TestRunnerSnapshot) -> Self {
         let test_runner = TestRunnerBuilder::new()
             .without_trace()
             .build_from_snapshot(snapshot.clone());

@@ -24,7 +24,7 @@ pub struct NodeId(pub [u8; Self::LENGTH]);
 
 impl NodeId {
     pub const ENTITY_ID_LENGTH: usize = 1;
-    pub const RID_LENGTH: usize = 29;
+    pub const RID_LENGTH: usize = 2;
     pub const LENGTH: usize = Self::ENTITY_ID_LENGTH + Self::RID_LENGTH;
 
     pub fn new(entity_byte: u8, random_bytes: &[u8; Self::RID_LENGTH]) -> Self {

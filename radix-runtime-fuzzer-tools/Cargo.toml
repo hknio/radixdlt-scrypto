@@ -44,3 +44,8 @@ bench = false
 name = "validator"
 path = "bin/validator.rs"
 bench = false
+
+[[bin]]
+name = "snapshot_updater"
+path = "bin/snapshot_updater.rs"
+bench = false

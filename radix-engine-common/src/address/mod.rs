@@ -18,8 +18,7 @@ pub mod test_addresses {
     // we only need to update one place if they change in future.
 
     pub const FUNGIBLE_RESOURCE: ResourceAddress = ResourceAddress::new_or_panic([
-        93, 166, 99, 24, 198, 49, 140, 97, 245, 166, 27, 76, 99, 24, 198, 49, 140, 247, 148, 170,
-        141, 41, 95, 20, 230, 49, 140, 99, 24, 198,
+        93, 254, 253
     ]);
     pub const FUNGIBLE_RESOURCE_NODE_ID: NodeId = FUNGIBLE_RESOURCE.into_node_id();
     pub const FUNGIBLE_RESOURCE_SIM_ADDRESS: &'static str =
@@ -30,8 +29,7 @@ pub mod test_addresses {
         "5da66318c6318c61f5a61b4c6318c6318cf794aa8d295f14e6318c6318c6";
 
     pub const NON_FUNGIBLE_RESOURCE: ResourceAddress = ResourceAddress::new_or_panic([
-        154, 44, 182, 19, 57, 155, 24, 12, 174, 96, 113, 33, 150, 96, 212, 73, 25, 253, 92, 25,
-        142, 137, 17, 218, 237, 75, 103, 174, 9, 139,
+        154, 254, 253
     ]);
     pub const NON_FUNGIBLE_RESOURCE_NODE_ID: NodeId = FUNGIBLE_RESOURCE.into_node_id();
     pub const NON_FUNGIBLE_RESOURCE_SIM_ADDRESS: &'static str =
