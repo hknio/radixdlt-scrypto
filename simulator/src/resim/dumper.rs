@@ -1,4 +1,5 @@
 #![allow(unused_must_use)]
+use crate::resim::get_default_network;
 use crate::utils::*;
 use blueprint_schema_init::BlueprintFeature;
 use colored::*;
@@ -36,7 +37,7 @@ pub fn dump_package<T: SubstateDatabase, O: std::io::Write>(
     substate_db: &T,
     output: &mut O,
 ) -> Result<(), EntityDumpError> {
-    let address_bech32_encoder = AddressBech32Encoder::new(&NetworkDefinition::simulator());
+    let address_bech32_encoder = AddressBech32Encoder::new(&get_default_network());
     let (_, substate) = substate_db
         .list_mapped::<SpreadPrefixKeyMapper, PackageCodeOriginalCodeEntrySubstate, MapKey>(
             package_address.as_node_id(),
@@ -73,7 +74,7 @@ pub fn dump_component<T: SubstateDatabase, O: std::io::Write>(
     substate_db: &T,
     output: &mut O,
 ) -> Result<(), EntityDumpError> {
-    let address_bech32_encoder = AddressBech32Encoder::new(&NetworkDefinition::simulator());
+    let address_bech32_encoder = AddressBech32Encoder::new(&get_default_network());
 
     let reader = SystemDatabaseReader::new(substate_db);
 
@@ -185,7 +186,7 @@ pub fn dump_resource_manager<T: SubstateDatabase, O: std::io::Write>(
     substate_db: &T,
     output: &mut O,
 ) -> Result<(), EntityDumpError> {
-    let address_bech32_encoder = AddressBech32Encoder::new(&NetworkDefinition::simulator());
+    let address_bech32_encoder = AddressBech32Encoder::new(&get_default_network());
 
     writeln!(
         output,

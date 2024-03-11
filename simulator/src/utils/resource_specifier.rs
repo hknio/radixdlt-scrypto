@@ -6,6 +6,8 @@
 use radix_engine_common::math::ParseDecimalError;
 use radix_engine_common::prelude::*;
 
+use crate::resim::get_default_network;
+
 #[derive(Debug)]
 pub enum ParseResourceSpecifierError {
     InvalidAmount(ParseDecimalError),
@@ -24,7 +26,7 @@ impl FromStr for ResourceSpecifier {
     type Err = ParseResourceSpecifierError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parse_resource_specifier(s, &AddressBech32Decoder::for_simulator())
+        parse_resource_specifier(s, &AddressBech32Decoder::new(&get_default_network()))
     }
 }
 

@@ -15,30 +15,41 @@ pub struct RocksdbSubstateStore {
 }
 
 impl RocksdbSubstateStore {
-    // Technically we don't need CFs here at all; however, delete range API is only available for CF
-    const THE_ONLY_CF: &'static str = "the_only";
+    const SUBSTATES_CF: &'static str = "substates";
 
     pub fn standard(root: PathBuf) -> Self {
         Self::with_options(&Options::default(), root)
     }
+
     pub fn with_options(options: &Options, root: PathBuf) -> Self {
+        let cfs: Vec<ColumnFamilyDescriptor> = match DB::list_cf(&Options::default(), root.as_path()) {
+            Ok(cfs) => {
+                cfs.iter().map(|cf_name| {
+                    ColumnFamilyDescriptor::new(cf_name, Options::default())
+                }).collect()
+            },
+            Err(_) => {
+                vec![ColumnFamilyDescriptor::new(
+                    Self::SUBSTATES_CF,
+                    Options::default(),
+                )]                
+            }
+        };
+
         let mut options = options.clone();
         options.create_if_missing(true);
         options.create_missing_column_families(true);
         let db = DB::open_cf_descriptors(
             &options,
             root.as_path(),
-            vec![ColumnFamilyDescriptor::new(
-                Self::THE_ONLY_CF,
-                Options::default(),
-            )],
+            cfs
         )
         .unwrap();
         Self { db }
     }
 
     fn cf(&self) -> &ColumnFamily {
-        self.db.cf_handle(Self::THE_ONLY_CF).unwrap()
+        self.db.cf_handle(Self::SUBSTATES_CF).unwrap()
     }
 }
 
@@ -146,11 +157,10 @@ impl ListableSubstateDatabase for RocksdbSubstateStore {
 }
 
 pub fn encode_to_rocksdb_bytes(partition_key: &DbPartitionKey, sort_key: &DbSortKey) -> Vec<u8> {
-    let mut buffer = Vec::new();
-    buffer.extend(
-        u32::try_from(partition_key.node_key.len())
-            .unwrap()
-            .to_be_bytes(),
+    let mut buffer = Vec::with_capacity(1 + partition_key.node_key.len() + 1 + sort_key.0.len());
+    buffer.push(
+        u8::try_from(partition_key.node_key.len())
+            .expect("Node key length is effectively constant 32 so should fit in a u8"),
     );
     buffer.extend(partition_key.node_key.clone());
     buffer.push(partition_key.partition_num);
@@ -159,15 +169,19 @@ pub fn encode_to_rocksdb_bytes(partition_key: &DbPartitionKey, sort_key: &DbSort
 }
 
 pub fn decode_from_rocksdb_bytes(buffer: &[u8]) -> DbSubstateKey {
-    let partition_key_len =
-        usize::try_from(u32::from_be_bytes(copy_u8_array(&buffer[..4]))).unwrap();
-    let partition_byte_offset = 4 + partition_key_len;
-    let partition_key = DbPartitionKey {
-        node_key: buffer[4..partition_byte_offset].to_vec(),
-        partition_num: buffer[partition_byte_offset],
-    };
-    let sort_key = DbSortKey(buffer[partition_byte_offset + 1..].to_vec());
-    (partition_key, sort_key)
+    let node_key_start: usize = 1usize;
+    let partition_key_start = 1usize + usize::from(buffer[0]);
+    let sort_key_start = 1usize + partition_key_start;
+    let node_key = buffer[node_key_start..partition_key_start].to_vec();
+    let partition_num = buffer[partition_key_start];
+    let sort_key = buffer[sort_key_start..].to_vec();
+    (
+        DbPartitionKey {
+            node_key,
+            partition_num,
+        },
+        DbSortKey(sort_key),
+    )
 }
 
 #[cfg(test)]

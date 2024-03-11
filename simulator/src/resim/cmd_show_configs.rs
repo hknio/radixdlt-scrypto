@@ -18,7 +18,7 @@ impl ShowConfigs {
             match configs.default_account {
                 Some(component) => format!(
                     "{}",
-                    component.display(&AddressBech32Encoder::for_simulator()),
+                    component.display(&AddressBech32Encoder::new(&get_default_network())),
                 ),
                 None => "None".to_owned(),
             }
@@ -41,7 +41,7 @@ impl ShowConfigs {
             match configs.default_owner_badge {
                 Some(owner_badge) => format!(
                     "{}",
-                    owner_badge.display(&AddressBech32Encoder::for_simulator())
+                    owner_badge.display(&AddressBech32Encoder::new(&get_default_network()))
                 ),
                 None => "None".to_owned(),
             }

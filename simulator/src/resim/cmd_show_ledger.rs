@@ -50,7 +50,7 @@ impl ShowLedger {
         out: &mut O,
         substate_db: &RocksdbSubstateStore,
     ) -> Result<(), Error> {
-        let address_bech32_encoder = AddressBech32Encoder::new(&NetworkDefinition::simulator());
+        let address_bech32_encoder = AddressBech32Encoder::new(&get_default_network());
         let mut packages: Vec<PackageAddress> = vec![];
         let mut components: Vec<ComponentAddress> = vec![];
         let mut resources: Vec<ResourceAddress> = vec![];

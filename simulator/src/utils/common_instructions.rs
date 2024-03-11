@@ -389,6 +389,8 @@ fn build_call_argument<'a>(
 
 #[cfg(test)]
 mod test {
+    use crate::resim::get_default_network;
+
     use super::*;
     use radix_engine_interface::blueprints::identity::IDENTITY_BLUEPRINT;
     use transaction::model::InstructionV1;
@@ -847,7 +849,7 @@ mod test {
         let builder = ManifestBuilder::new();
         let (builder, built_arg) = build_call_argument(
             builder,
-            &AddressBech32Decoder::for_simulator(),
+            &AddressBech32Decoder::new(&get_default_network()),
             &type_kind,
             &type_validation,
             arg.as_ref().to_owned(),

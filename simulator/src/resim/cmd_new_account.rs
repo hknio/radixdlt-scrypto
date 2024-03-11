@@ -52,7 +52,11 @@ impl NewAccount {
             out,
         )?;
 
-        let address_bech32_encoder = AddressBech32Encoder::new(&NetworkDefinition::simulator());
+        let network = match &self.network {
+            Some(n) => NetworkDefinition::from_str(&n).map_err(Error::ParseNetworkError)?,
+            None => get_default_network(),
+        };
+        let address_bech32_encoder = AddressBech32Encoder::new(&network);
 
         if let Some(ref receipt) = receipt {
             let commit_result = receipt.expect_commit(true);
@@ -113,7 +117,7 @@ impl NewAccount {
                 out,
                 "Owner badge: {}",
                 owner_badge
-                    .to_canonical_string(&AddressBech32Encoder::for_simulator())
+                    .to_canonical_string(&AddressBech32Encoder::new(&get_default_network()))
                     .green()
             )
             .map_err(Error::IOError)?;

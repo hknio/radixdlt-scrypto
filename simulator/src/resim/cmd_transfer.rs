@@ -36,7 +36,7 @@ pub struct Transfer {
 
 impl Transfer {
     pub fn run<O: std::io::Write>(&self, out: &mut O) -> Result<(), Error> {
-        let address_bech32_decoder = AddressBech32Decoder::for_simulator();
+        let address_bech32_decoder = AddressBech32Decoder::new(&get_default_network());
 
         let default_account = get_default_account()?;
         let proofs = self.proofs.clone().unwrap_or_default();

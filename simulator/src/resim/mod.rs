@@ -12,6 +12,7 @@ mod cmd_new_token_fixed;
 mod cmd_new_token_mutable;
 mod cmd_publish;
 mod cmd_reset;
+mod cmd_reset_faucet;
 mod cmd_run;
 mod cmd_set_current_epoch;
 mod cmd_set_current_time;
@@ -37,6 +38,7 @@ pub use cmd_new_token_fixed::*;
 pub use cmd_new_token_mutable::*;
 pub use cmd_publish::*;
 pub use cmd_reset::*;
+pub use cmd_reset_faucet::*;
 pub use cmd_run::*;
 pub use cmd_set_current_epoch::*;
 pub use cmd_set_current_time::*;
@@ -51,7 +53,9 @@ pub use error::*;
 
 pub const DEFAULT_SCRYPTO_DIR_UNDER_HOME: &'static str = ".scrypto";
 pub const ENV_DATA_DIR: &'static str = "DATA_DIR";
+pub const ENV_DEFAULT_NETWORK: &'static str = "DEFAULT_NETWORK";
 pub const ENV_DISABLE_MANIFEST_OUTPUT: &'static str = "DISABLE_MANIFEST_OUTPUT";
+pub const ENV_ASSUME_ALL_SIGNATURE_PROOFS: &'static str = "ASSUME_ALL_SIGNATURE_PROOFS";
 
 use clap::{Parser, Subcommand};
 use radix_engine::blueprints::consensus_manager::{
@@ -121,6 +125,7 @@ pub enum Command {
     NewTokenMutable(NewTokenMutable),
     Publish(Publish),
     Reset(Reset),
+    ResetFaucet(ResetFaucet),
     Run(Run),
     SetCurrentEpoch(SetCurrentEpoch),
     SetCurrentTime(SetCurrentTime),
@@ -150,6 +155,7 @@ pub fn run() -> Result<(), Error> {
         Command::NewTokenMutable(cmd) => cmd.run(&mut out),
         Command::Publish(cmd) => cmd.run(&mut out),
         Command::Reset(cmd) => cmd.run(&mut out),
+        Command::ResetFaucet(cmd) => cmd.run(&mut out),
         Command::Run(cmd) => cmd.run(&mut out),
         Command::SetCurrentEpoch(cmd) => cmd.run(&mut out),
         Command::SetCurrentTime(cmd) => cmd.run(&mut out),
@@ -190,7 +196,7 @@ pub fn handle_system_transaction<O: std::io::Write>(
         &mut db,
         vm,
         &CostingParameters::default(),
-        &ExecutionConfig::for_system_transaction(NetworkDefinition::simulator())
+        &ExecutionConfig::for_system_transaction(get_default_network())
             .with_kernel_trace(trace),
         &transaction
             .prepare()
@@ -199,7 +205,7 @@ pub fn handle_system_transaction<O: std::io::Write>(
     );
 
     if print_receipt {
-        let encoder = AddressBech32Encoder::for_simulator();
+        let encoder = AddressBech32Encoder::new(&get_default_network());
         let display_context = TransactionReceiptDisplayContextBuilder::new()
             .encoder(&encoder)
             .schema_lookup_callback(|event_type_identifier: &EventTypeIdentifier| {
@@ -222,9 +228,9 @@ pub fn handle_manifest<O: std::io::Write>(
     print_receipt: bool,
     out: &mut O,
 ) -> Result<Option<TransactionReceipt>, Error> {
-    let network = match network {
+    let network = match &network {
         Some(n) => NetworkDefinition::from_str(&n).map_err(Error::ParseNetworkError)?,
-        None => NetworkDefinition::simulator(),
+        None => get_default_network(),
     };
     match write_manifest {
         Some(path) => {
@@ -258,7 +264,11 @@ pub fn handle_manifest<O: std::io::Write>(
                 .map(|e| NonFungibleGlobalId::from_public_key(&e.public_key()))
                 .collect::<BTreeSet<NonFungibleGlobalId>>();
             let nonce = get_nonce()?;
-            let transaction = TestTransaction::new_from_nonce(manifest, nonce);
+            let transaction = TestTransaction::new_from_nonce(manifest, nonce).with_flags(
+                TestTransactionFlags {
+                    assume_all_signature_proofs: assume_all_signature_proofs(),
+                },
+            );
 
             let receipt = execute_and_commit_transaction(
                 &mut db,
@@ -272,7 +282,7 @@ pub fn handle_manifest<O: std::io::Write>(
             );
 
             if print_receipt {
-                let encoder = AddressBech32Encoder::for_simulator();
+                let encoder = AddressBech32Encoder::new(&get_default_network());
                 let display_context = TransactionReceiptDisplayContextBuilder::new()
                     .encoder(&encoder)
                     .schema_lookup_callback(|event_type_identifier: &EventTypeIdentifier| {

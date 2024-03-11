@@ -51,7 +51,7 @@ impl SimulatorEnvironment {
         let vm = Vm::new(&self.scrypto_vm, self.native_vm.clone());
 
         // Bootstrap
-        Bootstrapper::new(NetworkDefinition::simulator(), &mut self.db, vm, false)
+        Bootstrapper::new(get_default_network(), &mut self.db, vm, false)
             .bootstrap_test_default();
 
         // Run the protocol updates - unlike the test runner, the user has no way in whether they
@@ -99,10 +99,21 @@ fn get_data_dir() -> Result<PathBuf, Error> {
     Ok(path)
 }
 
+pub fn get_default_network() -> NetworkDefinition {
+    match env::var(ENV_DEFAULT_NETWORK) {
+        Ok(value) => NetworkDefinition::from_str(&value).unwrap(),
+        Err(..) => NetworkDefinition::simulator(),
+    }
+}
+
 pub fn get_configs_path() -> Result<PathBuf, Error> {
     let mut path = get_data_dir()?;
     path.push("config");
     Ok(path.with_extension("sbor"))
+}
+
+pub fn assume_all_signature_proofs() -> bool {
+    env::var(ENV_ASSUME_ALL_SIGNATURE_PROOFS).is_ok()
 }
 
 pub fn get_configs() -> Result<Configs, Error> {

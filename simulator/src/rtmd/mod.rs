@@ -8,6 +8,8 @@ use std::str::FromStr;
 use transaction::manifest::decompile;
 use transaction::prelude::*;
 
+use crate::resim::get_default_network;
+
 /// Radix transaction manifest decompiler
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None, name = "rtmd")]
@@ -44,7 +46,7 @@ pub fn run() -> Result<(), Error> {
     let content = std::fs::read(&args.input).map_err(Error::IoError)?;
     let network = match args.network {
         Some(n) => NetworkDefinition::from_str(&n).map_err(Error::ParseNetworkError)?,
-        None => NetworkDefinition::simulator(),
+        None => get_default_network(),
     };
 
     let (manifest_instructions, blobs) =

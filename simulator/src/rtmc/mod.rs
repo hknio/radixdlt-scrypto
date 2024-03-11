@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use transaction::manifest::{compile, BlobProvider};
 
+use crate::resim::get_default_network;
+
 /// Radix transaction manifest compiler
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None, name = "rtmc")]
@@ -44,7 +46,7 @@ pub fn run() -> Result<(), Error> {
     let content = std::fs::read_to_string(&args.input).map_err(Error::IoError)?;
     let network = match args.network {
         Some(n) => NetworkDefinition::from_str(&n).map_err(Error::ParseNetworkError)?,
-        None => NetworkDefinition::simulator(),
+        None => get_default_network(),
     };
     let mut blobs = Vec::new();
     if let Some(paths) = args.blobs {

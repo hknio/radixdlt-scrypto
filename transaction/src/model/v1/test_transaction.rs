@@ -6,11 +6,17 @@ use radix_engine_common::types::NonFungibleGlobalId;
 use radix_engine_interface::*;
 use std::collections::BTreeSet;
 
+#[derive(ManifestSbor, Default)]
+pub struct TestTransactionFlags {
+    pub assume_all_signature_proofs: bool,
+}
+
 #[derive(ManifestSbor)]
 pub struct TestTransaction {
     pub instructions: InstructionsV1,
     pub blobs: BlobsV1,
     pub hash: Hash,
+    pub flags: TestTransactionFlags,
 }
 
 #[derive(ManifestSbor)]
@@ -19,6 +25,7 @@ pub struct PreparedTestTransaction {
     pub references: IndexSet<Reference>,
     pub blobs: IndexMap<Hash, Vec<u8>>,
     pub hash: Hash,
+    pub flags: TestTransactionFlags,
 }
 
 impl TestTransaction {
@@ -33,7 +40,13 @@ impl TestTransaction {
             instructions,
             blobs,
             hash,
+            flags: TestTransactionFlags::default(),
         }
+    }
+
+    pub fn with_flags(mut self, flags: TestTransactionFlags) -> Self {
+        self.flags = flags;
+        self
     }
 
     pub fn prepare(self) -> Result<PreparedTestTransaction, PrepareError> {
@@ -43,6 +56,7 @@ impl TestTransaction {
             references: prepared_instructions.references,
             blobs: self.blobs.prepare_partial()?.blobs_by_hash,
             hash: self.hash,
+            flags: self.flags,
         })
     }
 }
@@ -52,6 +66,12 @@ impl PreparedTestTransaction {
         &'a self,
         initial_proofs: BTreeSet<NonFungibleGlobalId>,
     ) -> Executable<'a> {
+        let mut virtual_resources = BTreeSet::new();
+        if self.flags.assume_all_signature_proofs {
+            virtual_resources.insert(SECP256K1_SIGNATURE_VIRTUAL_BADGE);
+            virtual_resources.insert(ED25519_SIGNATURE_VIRTUAL_BADGE);
+        }
+
         Executable::new(
             &self.encoded_instructions,
             &self.references,
@@ -67,7 +87,7 @@ impl PreparedTestTransaction {
                 num_of_signature_validations: initial_proofs.len() + 1,
                 auth_zone_params: AuthZoneParams {
                     initial_proofs,
-                    virtual_resources: BTreeSet::new(),
+                    virtual_resources,
                 },
                 costing_parameters: TransactionCostingParameters {
                     tip_percentage: DEFAULT_TIP_PERCENTAGE,

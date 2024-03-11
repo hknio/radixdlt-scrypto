@@ -339,7 +339,7 @@ impl Publish {
                     out,
                     "Success! New Package: {}",
                     receipt.expect_commit(true).new_package_addresses()[0]
-                        .display(&AddressBech32Encoder::for_simulator())
+                        .display(&AddressBech32Encoder::new(&get_default_network()))
                         .to_string()
                         .green()
                 )

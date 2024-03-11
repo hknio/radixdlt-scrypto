@@ -11,6 +11,8 @@ use sbor::rust::fmt;
 use std::str::FromStr;
 use utils::ContextualDisplay;
 
+use super::get_default_network;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AddressError {
     InvalidAddress(String),
@@ -46,7 +48,7 @@ impl FromStr for SimulatorPackageAddress {
     fn from_str(address: &str) -> Result<Self, Self::Err> {
         PackageAddress::try_from_hex(address)
             .or(PackageAddress::try_from_bech32(
-                &AddressBech32Decoder::for_simulator(),
+                &AddressBech32Decoder::new(&get_default_network()),
                 address,
             ))
             .ok_or(AddressError::InvalidAddress(address.to_string()))
@@ -59,7 +61,7 @@ impl fmt::Display for SimulatorPackageAddress {
         write!(
             f,
             "{}",
-            self.0.display(&AddressBech32Encoder::for_simulator())
+            self.0.display(&AddressBech32Encoder::new(&get_default_network()))
         )
     }
 }
@@ -91,7 +93,7 @@ impl FromStr for SimulatorResourceAddress {
     fn from_str(address: &str) -> Result<Self, Self::Err> {
         ResourceAddress::try_from_hex(address)
             .or(ResourceAddress::try_from_bech32(
-                &AddressBech32Decoder::for_simulator(),
+                &AddressBech32Decoder::new(&get_default_network()),
                 address,
             ))
             .ok_or(AddressError::InvalidAddress(address.to_string()))
@@ -104,7 +106,7 @@ impl fmt::Display for SimulatorResourceAddress {
         write!(
             f,
             "{}",
-            self.0.display(&AddressBech32Encoder::for_simulator())
+            self.0.display(&AddressBech32Encoder::new(&get_default_network()))
         )
     }
 }
@@ -136,7 +138,7 @@ impl FromStr for SimulatorComponentAddress {
     fn from_str(address: &str) -> Result<Self, Self::Err> {
         ComponentAddress::try_from_hex(address)
             .or(ComponentAddress::try_from_bech32(
-                &AddressBech32Decoder::for_simulator(),
+                &AddressBech32Decoder::new(&get_default_network()),
                 address,
             ))
             .ok_or(AddressError::InvalidAddress(address.to_string()))
@@ -149,7 +151,7 @@ impl fmt::Display for SimulatorComponentAddress {
         write!(
             f,
             "{}",
-            self.0.display(&AddressBech32Encoder::for_simulator())
+            self.0.display(&AddressBech32Encoder::new(&get_default_network()))
         )
     }
 }
@@ -180,7 +182,7 @@ impl FromStr for SimulatorNonFungibleGlobalId {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let global_id = NonFungibleGlobalId::try_from_canonical_string(
-            &AddressBech32Decoder::for_simulator(),
+            &AddressBech32Decoder::new(&get_default_network()),
             s,
         )?;
         Ok(Self(global_id))
@@ -193,7 +195,7 @@ impl fmt::Display for SimulatorNonFungibleGlobalId {
             f,
             "{}",
             self.0
-                .to_canonical_string(&AddressBech32Encoder::for_simulator())
+                .to_canonical_string(&AddressBech32Encoder::new(&get_default_network()))
         )
     }
 }

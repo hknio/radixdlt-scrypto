@@ -55,7 +55,10 @@ impl NewSimpleBadge {
         &self,
         out: &mut O,
     ) -> Result<Option<NonFungibleGlobalId>, Error> {
-        let network_definition = NetworkDefinition::simulator();
+        let network_definition = match &self.network {
+            Some(n) => NetworkDefinition::from_str(&n).map_err(Error::ParseNetworkError)?,
+            None => get_default_network(),
+        };
         let default_account = get_default_account()?;
         let mut metadata = MetadataInit::new();
         if let Some(symbol) = self.symbol.clone() {
