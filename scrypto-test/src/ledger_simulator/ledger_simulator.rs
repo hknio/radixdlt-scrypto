@@ -450,6 +450,41 @@ impl<E: NativeVmExtension, D: TestDatabase> LedgerSimulatorBuilder<E, D> {
         (runner, next_epoch.validator_set)
     }
 
+    pub fn build_without_bootstrapping(self) -> LedgerSimulator<E, D> {
+        #[cfg(not(feature = "resource_tracker"))]
+        let with_kernel_trace = self.with_kernel_trace;
+        #[cfg(feature = "resource_tracker")]
+        let with_kernel_trace = false;
+        //----------------------------------------------------------------
+
+        let scrypto_vm = ScryptoVm {
+            wasm_engine: DefaultWasmEngine::default(),
+            wasm_validator_config: WasmValidatorConfigV1::new(),
+        };
+        let native_vm = NativeVm::new_with_extension(self.custom_extension);
+        let substate_db = self.custom_database;
+
+        // Note that 0 is not a valid private key
+        let next_private_key = 100;
+
+        // Starting from non-zero considering that bootstrap might have used a few.
+        let next_transaction_nonce = 100;
+
+        let runner = LedgerSimulator {
+            scrypto_vm,
+            native_vm,
+            database: substate_db,
+            next_private_key,
+            next_transaction_nonce,
+            collected_events: vec![],
+            xrd_free_credits_used: false,
+            with_kernel_trace: with_kernel_trace,
+            with_receipt_substate_check: self.with_receipt_substate_check,
+        };
+
+        runner
+    }    
+
     pub fn build(self) -> LedgerSimulator<E, D> {
         self.build_and_get_epoch().0
     }
