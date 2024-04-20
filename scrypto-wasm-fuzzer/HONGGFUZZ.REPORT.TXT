@@ -1,0 +1,258 @@
+=====================================================================
+TIME: 2024-04-20.13:37:22
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 1 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/debug/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 00000000000000000000000000000000.00000000.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7c2ce2c.STACK.f760ec0e8.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 96065
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7c2ce2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 0000000f760ec0e8
+STACK:
+ <0x00007ffff7bddfb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc8472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00005555555863da> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555584f3f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555584cbd> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00005555555849eb> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555583b89> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555584757> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555b8e3> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555c372> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555c72f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00007ffff7bc924a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc9305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x000055555555c231> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+=====================================================================
+=====================================================================
+TIME: 2024-04-20.13:41:11
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 1 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/debug/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 00000000000000000000000000000000.00000000.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7c2ce2c.STACK.ec59c6688.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 97851
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7c2ce2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 0000000ec59c6688
+STACK:
+ <0x00007ffff7bddfb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc8472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00005555555878da> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555558643f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00005555555861bd> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555585eeb> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555585089> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555585c57> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555b8e3> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555be67> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555555d4c0> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555556800f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00007ffff7bc924a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc9305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x000055555555c271> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+=====================================================================
+=====================================================================
+TIME: 2024-04-20.13:41:48
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 1 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/debug/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 00000000000000000000000000000000.00000000.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7c2ce2c.STACK.18090fc77d.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 100154
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7c2ce2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 00000018090fc77d
+STACK:
+ <0x00007ffff7bddfb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc8472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c21430> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c367aa> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c3720c> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c39818> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c3a9fa> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c178cc> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c250b0> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c2335c> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c21ef4> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c6760b> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c670c4> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7c672af> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x0000555555569555> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555556c0bc> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555555567fea> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00007ffff7bc924a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7bc9305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x000055555555c231> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+=====================================================================
+=====================================================================
+TIME: 2024-04-20.14:26:31
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 60000 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/debug/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 00000000000000000000000000000000.00000000.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7b4de2c.STACK.1b9176ac38.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 124591
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7b4de2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 0000001b9176ac38
+STACK:
+ <0x00007ffff7afefb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7ae9472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x0000555557a77a6a> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555557a7296f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555557a7260d> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555557a72374> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555557a70c89> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555557a720a7> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x000055555574dc93> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555556eab25f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x0000555556eab270> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00005555557551f2> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00005555557634bf> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+ <0x00007ffff7aea24a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7aea305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x000055555574e981> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/debug/wasm_fuzzer]
+=====================================================================
+=====================================================================
+TIME: 2024-04-20.14:47:34
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 60000 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/release/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 1fefdf7b9f5c879f8fdc9f3c6d6c189b.00000065.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7b4de2c.STACK.c52734d1d.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 179505
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7b4de2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 0000000c52734d1d
+STACK:
+ <0x00007ffff7afefb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7ae9472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x0000555556c0215a> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556bfc38f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556bfc02d> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556bfbd94> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556bfa4f9> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556bfbac7> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00005555556b0743> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555555999515> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x000055555599ace9> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00005555559bc7b6> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555555ad08bf> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00007ffff7aea24a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7aea305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00005555556bcb41> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+=====================================================================
+=====================================================================
+TIME: 2024-04-20.15:15:59
+=====================================================================
+FUZZER ARGS:
+ mutationsPerRun : 5
+ externalCmd     : NULL
+ fuzzStdin       : FALSE
+ timeout         : 60000 (sec)
+ ignoreAddr      : (nil)
+ ASLimit         : 0 (MiB)
+ RSSLimit        : 0 (MiB)
+ DATALimit       : 0 (MiB)
+ wordlistFile    : NULL
+ dynFileMethod   : 
+ fuzzTarget      : ../target/release/wasm_fuzzer 
+CRASH:
+DESCRIPTION: 
+ORIG_FNAME: 58aa8000000000007ad8d00000000000.00000002.honggfuzz.cov
+FUZZ_FNAME: /workspaces/develop/scrypto-wasm-fuzzer/SIGABRT.PC.7ffff7b4de2c.STACK.edb81c6cf.CODE.-6.ADDR.0.INSTR.mov____%eax,%ebp.fuzz
+PID: 215552
+SIGNAL: SIGABRT (6)
+PC: 0x7ffff7b4de2c
+FAULT ADDRESS: 0x0
+INSTRUCTION: mov____%eax,%ebp
+STACK HASH: 0000000edb81c6cf
+STACK:
+ <0x00007ffff7afefb2> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7ae9472> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x0000555556917f7a> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556912e7f> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556912b1d> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556912884> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556911199> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00005555569125b7> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00005555556859c3> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555556530828> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00005555559447bc> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x0000555555aa7ddf> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+ <0x00007ffff7aea24a> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x00007ffff7aea305> [func:UNKNOWN file: line:0 module:/usr/lib/x86_64-linux-gnu/libc.so.6]
+ <0x0000555555691d81> [func:UNKNOWN file: line:0 module:/workspaces/develop/target/release/wasm_fuzzer]
+=====================================================================

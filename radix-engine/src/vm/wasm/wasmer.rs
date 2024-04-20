@@ -1029,6 +1029,7 @@ impl WasmEngine for WasmerEngine {
     type WasmInstance = WasmerInstance;
 
     fn instantiate(&self, code_hash: CodeHash, instrumented_code: &[u8]) -> WasmerInstance {
+        /*
         #[cfg(not(feature = "fuzzing"))]
         {
             #[cfg(not(feature = "moka"))]
@@ -1042,6 +1043,7 @@ impl WasmEngine for WasmerEngine {
                 return cached_module.instantiate();
             }
         }
+         */
 
         let new_module = Arc::new(WasmerModule {
             module: Module::new(&self.store, instrumented_code)
@@ -1049,6 +1051,7 @@ impl WasmEngine for WasmerEngine {
             code_size_bytes: instrumented_code.len(),
         });
 
+        /*
         #[cfg(not(feature = "fuzzing"))]
         {
             #[cfg(not(feature = "moka"))]
@@ -1058,7 +1061,8 @@ impl WasmEngine for WasmerEngine {
             #[cfg(feature = "moka")]
             self.modules_cache.insert(code_hash, new_module.clone());
         }
-
+         */
+        
         new_module.instantiate()
     }
 }
