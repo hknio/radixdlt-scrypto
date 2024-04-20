@@ -1,0 +1,8 @@
+# environment variables:
+AFL_DEBUG=1
+AFL_FORKSRV_INIT_TMOUT=60000
+AFL_KILL_SIGNAL=9
+AFL_NO_UI=1
+AFL_SKIP_BIN_CHECK=1
+# command line:
+'afl-fuzz' '-i' 'in' '-o' 'out' '../target/release/wasm_fuzzer'

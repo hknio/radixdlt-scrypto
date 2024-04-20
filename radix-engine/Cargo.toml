@@ -30,6 +30,8 @@ perfcnt = { workspace = true, optional = true }
 paste = { workspace = true }
 radix-common-derive = { workspace = true }
 const-sha1 = { workspace = true } # Chosen because of its small size and 0 transitive dependencies
+libc = "0.2"
+nix = { version = "0.21.0" }
 
 # WASM validation
 wasmparser = { workspace = true }
@@ -102,6 +104,7 @@ full_wasm_benchmarks = []
 
 # This flag disables package size limit, memory size limit and fee limit
 coverage = [ "radix-common/coverage" ]
+wasm_fuzzing = [ "coverage" ]
 
 # Ref: https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
 [lib]

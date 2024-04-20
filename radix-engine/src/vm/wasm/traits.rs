@@ -247,6 +247,14 @@ pub trait WasmInstance {
         args: Vec<Buffer>,
         runtime: &mut Box<dyn WasmRuntime + 'r>,
     ) -> Result<Vec<u8>, InvokeError<WasmRuntimeError>>;
+
+    #[cfg(feature = "wasm_fuzzing")]
+    fn fuzz_export<'r>(
+        &mut self,
+        func_name: &str,
+        args: Vec<Buffer>,
+        runtime: &mut Box<dyn WasmRuntime + 'r>,
+    );
 }
 
 /// A Scrypto WASM engine validates, instruments and runs Scrypto modules.

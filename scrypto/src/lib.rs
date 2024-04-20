@@ -92,6 +92,7 @@ pub fn set_up_panic_hook() {
     }));
 }
 
+/*
 #[cfg(all(feature = "coverage"))]
 #[no_mangle]
 pub unsafe extern "C" fn dump_coverage() -> types::Slice {
@@ -99,3 +100,24 @@ pub unsafe extern "C" fn dump_coverage() -> types::Slice {
     minicov::capture_coverage(&mut coverage).unwrap();
     engine::wasm_api::forget_vec(coverage)
 }
+*/
+
+static mut START: *const u8 = std::ptr::null();
+static mut STOP: *const u8 = std::ptr::null();
+
+// Rust version of the C extern function
+#[no_mangle]
+pub extern "C" fn __sanitizer_cov_8bit_counters_init(start: *const u8, stop: *const u8) {
+    unsafe {
+        START = start;
+        STOP = stop;
+    }
+}
+
+//#[cfg(all(feature = "coverage"))]
+#[no_mangle]
+pub unsafe extern "C" fn dump_coverage_counters() -> types::Slice {
+    let length = STOP.offset_from(START) as usize;
+    types::Slice::new(START as u32, length as u32)
+}
+

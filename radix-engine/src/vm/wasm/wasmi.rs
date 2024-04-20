@@ -1744,6 +1744,12 @@ impl WasmInstance for WasmiInstance {
         args: Vec<Buffer>,
         runtime: &mut Box<dyn WasmRuntime + 'r>,
     ) -> Result<Vec<u8>, InvokeError<WasmRuntimeError>> {
+        #[cfg(feature = "wasm_fuzzing")]
+        if func_name.contains("fuzz") {
+            self.fuzz_export(func_name, args, runtime);
+            panic!("Fuzzing function executed");
+        }
+        
         {
             // set up runtime pointer
             // Using triple casting is to workaround this error message:
@@ -1804,6 +1810,181 @@ impl WasmInstance for WasmiInstance {
 
         result
     }
+
+    #[cfg(feature = "wasm_fuzzing")]
+    fn fuzz_export<'r>(
+        &mut self,
+        func_name: &str,
+        args: Vec<Buffer>,
+        runtime: &mut Box<dyn WasmRuntime + 'r>,
+    ) {
+        use std::{env, process, ptr, io::{self, Read}};
+        use nix::{sys::signal::{kill, Signal}, unistd::{close, fork, read, write, ForkResult, Pid, getpid}};
+        use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
+        use libc;
+
+        // Constants
+        const SHM_ENV_VAR: &str = "__AFL_SHM_ID";
+        const FORKSRV_FD: i32 = 198;
+        const MAP_SIZE: i32 = 1 << 16;
+
+        // init forkserver
+        let zeros: [u8; 4] = [0_u8; 4];  // Example data
+        write(FORKSRV_FD + 1, &zeros).unwrap();
+
+        let mut child_stopped = false;
+        let mut child_pid: Option<Pid> = None;
+        
+        loop {
+            let mut was_killed = [0u8; 4];
+            if read(FORKSRV_FD, &mut was_killed).unwrap() != 4 {
+                panic!("Forkserver read error");
+            }
+
+            if child_stopped && was_killed[0] != 0 {
+                child_stopped = false;
+                if let Some(pid) = child_pid {
+                    if waitpid(pid, None).is_err() {
+                        panic!("Failed to wait for child process");
+                    }
+                }
+            }
+        
+            if !child_stopped {
+                match unsafe { fork() } {
+                    Ok(ForkResult::Parent { child, .. }) => {
+                        child_pid = Some(child);
+                    },
+                    Ok(ForkResult::Child) => {
+                        close(FORKSRV_FD).unwrap();
+                        close(FORKSRV_FD + 1).unwrap();
+                        break;
+                    },
+                    Err(_) => panic!("Fork failed"),
+                }
+            } else {
+                // Restart child with SIGCONT
+                println!("Restarting child");
+                if let Some(pid) = child_pid {
+                    kill(pid, Signal::SIGCONT).unwrap();
+                    child_stopped = false;
+                }
+            }
+
+            if let Some(pid) = child_pid {
+                if write(FORKSRV_FD + 1, &pid.as_raw().to_ne_bytes()).unwrap() != 4 {
+                    panic!("Forkserver write error");
+                }
+    
+                let mut status: i32 = 0;
+
+                match waitpid(pid, None).unwrap() {
+                    WaitStatus::Stopped(_, _) => {
+                        child_stopped = true;
+                    }
+                    WaitStatus::Exited(_, code) => {
+                        status = code;
+                    }
+                    _ => {}
+                }
+    
+                // Relay wait status to pipe
+
+                //if libc::WIFSTOPPED(pid.as_raw()) {
+                //    child_stopped = true;
+                //}
+    
+                if write(FORKSRV_FD + 1, &status.to_ne_bytes()).unwrap() != 4 {
+                    panic!("Forkserver write error");
+                }
+            }
+        }
+
+        // fuzzing
+        {
+            self.store
+                .data_mut()
+                .runtime_ptr
+                .write(runtime as *mut _ as usize as *mut _);
+        }
+
+        let func = self.get_export_func(func_name).unwrap();
+
+        let mut raw_input : Vec<u8> = Vec::new();
+        let result = io::stdin().read_to_end(&mut raw_input);
+        if result.is_err() {
+            panic!("Failed to read input");
+            return;
+        }
+
+        //println!("Input: {:?}", raw_input);
+
+        if raw_input.len() == 4 && raw_input[0] == 'f' as u8 {
+            println!("Sum should be higher");
+        }
+
+        let input = scrypto_encode(&(raw_input, )).unwrap();
+        let buffer_id = runtime.allocate_buffer(input).unwrap();
+        let input = vec![Value::I64(buffer_id.as_i64())];
+        let mut ret = [Value::I64(0)];
+
+        let call_result = func
+            .call(self.store.as_context_mut(), &input, &mut ret)
+            .map_err(|e| {
+                let err: InvokeError<WasmRuntimeError> = e.into();
+                err
+            });
+
+        let result = match call_result {
+            Ok(_) => match i64::try_from(ret[0]) {
+                Ok(ret) => read_slice(
+                    self.store.as_context_mut(),
+                    self.memory,
+                    Slice::transmute_i64(ret),
+                ),
+                _ => Err(InvokeError::SelfError(WasmRuntimeError::InvalidWasmPointer)),
+            },
+            Err(err) => Err(err),
+        };
+
+        if result.is_err() {
+            panic!("Failed to execute fuzzing function");
+        };
+
+        let dump_coverage_func = self.get_export_func("dump_coverage_counters").unwrap();
+        let mut ret = [Value::I64(0)];
+        dump_coverage_func
+            .call(self.store.as_context_mut(), &[], &mut ret)
+            .expect("Failed to call dump_coverage");
+        let coverage_data = read_slice(
+            self.store.as_context_mut(),
+            self.memory,
+            Slice::transmute_i64(i64::try_from(ret[0]).unwrap()),
+        )
+        .expect("Failed to read coverage data");
+
+        let id_str = env::var(SHM_ENV_VAR).unwrap();
+        let shm_id = id_str.parse::<i32>().unwrap();
+    
+        let afl_area = unsafe {
+            let addr = libc::shmat(shm_id, ptr::null_mut(), 0);
+            if addr.is_null() {
+                panic!("Failed to attach to shared memory: {}", io::Error::last_os_error());
+            }            
+            let area_ptr = addr as *mut u8;
+            std::slice::from_raw_parts_mut(area_ptr, MAP_SIZE as usize)
+        };
+
+        for i in 0..coverage_data.len() {
+            afl_area[i] = afl_area[i].wrapping_add(coverage_data[i]);
+        }
+        let sum = afl_area.iter().fold(0, |acc, &x| acc + x as i32);
+        if sum > 50 {
+            println!("Coverage sum: {}", sum);
+        }
+
+        std::process::exit(0);
+    }    
 }
 
 #[derive(Debug, Clone)]
