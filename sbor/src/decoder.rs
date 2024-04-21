@@ -255,7 +255,7 @@ impl<'de, X: CustomValueKind> VecDecoder<'de, X> {
     }
 
     #[inline]
-    fn remaining_bytes(&self) -> usize {
+    pub fn remaining_bytes(&self) -> usize {
         self.input.len() - self.offset
     }
 

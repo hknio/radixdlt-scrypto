@@ -1,25 +1,20 @@
-use radix_engine_interface::types::Level;
-use radix_substate_store_queries::typed_substate_layout::PackageDefinition;
 use std::path::PathBuf;
+use radix_engine_interface::blueprints::package::PackageDefinition;
 use scrypto_compiler::*;
+use proc_lock::proc_lock;
 
-
-pub fn build_with_coverage(path: PathBuf) -> (Vec<u8>, PackageDefinition) {
+#[proc_lock(name = "build_for_fuzzing.lock")]
+pub fn build_for_fuzzing(path: PathBuf) -> (Vec<u8>, PackageDefinition) {
     let mut compiler_builder = ScryptoCompiler::builder();
     compiler_builder
         .manifest_path(path)
-        .log_level(Level::Trace)
-        .optimize_with_wasm_opt(None)
-        .coverage();
+        .optimize_with_wasm_opt(None);
 
     let flags = vec![
         "-Cllvm-args=-sanitizer-coverage-inline-8bit-counters",
         "-Cpasses=sancov-module",
         "-Cllvm-args=-sanitizer-coverage-level=3",
     ];
-
-    // join flags with a special character
-    let flags_env = 
 
     compiler_builder.env("CARGO_ENCODED_RUSTFLAGS", EnvironmentVariableAction::Set(flags.join("\x1f")));
 
